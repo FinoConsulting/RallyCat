@@ -37,6 +37,13 @@ namespace RallyCat.WebApi.Controllers
             _graphicService = new GraphicService();
             _azureService = new AzureService(RallyBackgroundData.Instance);
         }
+
+        [Route("api/Rally/test")]
+        [HttpGet]
+        public String Test()
+        {
+            return "jenny-test";
+        }
         [Route("api/Rally/Details")]
         [HttpPost]
         public async Task<SlackResponseVM> Details()
@@ -62,7 +69,9 @@ namespace RallyCat.WebApi.Controllers
             string formattedId = m.Groups[0].Value;
             string result = GetItem(formattedId, msg.ChannelName);
             return new SlackResponseVM (result);
+          
         }
+
         [Route("api/Rally/Kanban/{channelName}")]
         public string GetKanban(string channelName)
         {
