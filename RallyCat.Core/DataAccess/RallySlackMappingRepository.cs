@@ -15,6 +15,15 @@ namespace RallyCat.Core.DataAccess
             _dbContext = dbContext;
         }
 
+        public RallySlackMapping GetOne()
+        {
+            // todo: Quinn, 16.02.29.10.30 -- US1234
+            //  this will be implemented in ...
+
+
+            throw new System.NotImplementedException();
+        }
+
         public Result<List<RallySlackMapping>> GetAll()
         {
             var result = new Result<List<RallySlackMapping>>();
@@ -25,8 +34,6 @@ namespace RallyCat.Core.DataAccess
                     {
                         o.Id = (int) r["Id"];
                         o.TeamName = (string) r["TeamName"];
-                        o.UserName = (string) r["UserName"];
-                        o.Password = (string) r["Password"];
                         o.ProjectId = (long) r["ProjectId"];
                         o.WorkspaceId = (long) r["WorkspaceId"];
                         o.KanbanSortColumn = (string) r["KanbanSortColumn"];
