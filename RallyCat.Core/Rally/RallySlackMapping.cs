@@ -10,8 +10,6 @@ namespace RallyCat.Core.Rally
     {
         public int Id { get; set; }
         public string TeamName { get; set; }
-        public string UserName { get; set; }
-        public string Password { get; set; }
         public long ProjectId { get; set; }
         public long WorkspaceId { get; set; }
         public string KanbanSortColumn { get; set; }
