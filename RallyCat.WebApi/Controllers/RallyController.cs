@@ -38,12 +38,6 @@ namespace RallyCat.WebApi.Controllers
             _azureService = new AzureService(RallyBackgroundData.Instance);
         }
 
-        [Route("api/Rally/test")]
-        [HttpGet]
-        public String Test()
-        {
-            return "jenny-test";
-        }
         [Route("api/Rally/Details")]
         [HttpPost]
         public async Task<SlackResponseVM> Details()
