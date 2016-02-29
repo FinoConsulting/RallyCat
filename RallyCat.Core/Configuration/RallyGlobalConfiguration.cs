@@ -17,5 +17,6 @@ namespace RallyCat.Core.Configuration
         public string AzureBlobContainerRef { get; set; }
         public string AzureToken { get; set; }
         public string KanbanImageFormat { get; set; }
+        public string RallyToken { get; set; }
     }
 }
