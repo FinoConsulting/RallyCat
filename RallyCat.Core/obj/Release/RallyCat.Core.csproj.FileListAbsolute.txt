@@ -1,0 +1,2 @@
+C:\Users\Jenny.Lee\Source\Repos\RallyCat\RallyCat.Core\obj\Release\RallyCat.Core.Resources.resources
+C:\Users\Jenny.Lee\Source\Repos\RallyCat\RallyCat.Core\obj\Release\RallyCat.Core.csproj.GenerateResource.Cache

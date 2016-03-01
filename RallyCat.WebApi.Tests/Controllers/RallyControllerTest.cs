@@ -20,9 +20,9 @@ namespace RallyCat.WebApi.Tests.Controllers
         [TestMethod]
         public void GetRallyKanbanTest()
         {
-            RallyController c = new RallyController();
-            Image img =c.GetKanban("de-support");
-            img.Save(@"c:\temp\RallyKanbanFull.png",ImageFormat.Png);
+            //RallyController c = new RallyController();
+            //Image img =c.GetKanban("de-support");
+            //img.Save(@"c:\temp\RallyKanbanFull.png",ImageFormat.Png);
         }
     }
 }

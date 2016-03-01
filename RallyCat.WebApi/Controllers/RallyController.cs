@@ -33,7 +33,7 @@ namespace RallyCat.WebApi.Controllers
             RallyCatDbContext.SetConnectionString("RallyCatConnection");
             _dbContext = RallyCatDbContext.QueryDb();
             RallyBackgroundData.SetDbContext(_dbContext);
-            _rallyService = new RallyService();
+            _rallyService = new RallyService(RallyBackgroundData.Instance);
             _graphicService = new GraphicService();
             _azureService = new AzureService(RallyBackgroundData.Instance);
         }
