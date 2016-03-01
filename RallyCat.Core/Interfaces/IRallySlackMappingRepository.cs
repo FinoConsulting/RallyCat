@@ -6,8 +6,6 @@ namespace RallyCat.Core.Interfaces
 {
     public interface IRallySlackMappingRepository
     {
-        RallySlackMapping GetOne();
-    
         Result<List<RallySlackMapping>> GetAll();
     }
 }
