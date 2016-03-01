@@ -33,10 +33,11 @@ namespace RallyCat.WebApi.Controllers
             RallyCatDbContext.SetConnectionString("RallyCatConnection");
             _dbContext = RallyCatDbContext.QueryDb();
             RallyBackgroundData.SetDbContext(_dbContext);
-            _rallyService = new RallyService();
+            _rallyService = new RallyService(RallyBackgroundData.Instance);
             _graphicService = new GraphicService();
             _azureService = new AzureService(RallyBackgroundData.Instance);
         }
+
         [Route("api/Rally/Details")]
         [HttpPost]
         public async Task<SlackResponseVM> Details()
@@ -62,7 +63,9 @@ namespace RallyCat.WebApi.Controllers
             string formattedId = m.Groups[0].Value;
             string result = GetItem(formattedId, msg.ChannelName);
             return new SlackResponseVM (result);
+          
         }
+
         [Route("api/Rally/Kanban/{channelName}")]
         public string GetKanban(string channelName)
         {

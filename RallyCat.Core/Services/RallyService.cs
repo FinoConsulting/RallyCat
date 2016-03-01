@@ -15,10 +15,14 @@ namespace RallyCat.Core.Services
     public class RallyService
     {
         private RallyApiConnectionPool _pool;
+        private string _rallyToken;
+        private string _rallyUrl;
 
-        public RallyService()
+        public RallyService(RallyBackgroundData backgroundData)
         {
             _pool = new RallyApiConnectionPool();
+            _rallyToken = backgroundData.RallyGlobalConfiguration.RallyToken;
+            _rallyUrl = backgroundData.RallyGlobalConfiguration.RallyUrl;
         }
 
         
@@ -39,7 +43,7 @@ namespace RallyCat.Core.Services
 
         public QueryResult GetRallyItemByQuery(RallySlackMapping map, List<string> requestFields, Query query, string artifectName ="")
         {
-            var api = _pool.GetApi(map.UserName, map.Password);
+            var api = _pool.GetApi(_rallyToken, _rallyUrl);
             if (api == null)
             {
                 throw new AuthenticationException("Cannot verify rally login");
@@ -64,8 +68,7 @@ namespace RallyCat.Core.Services
 
         public List<dynamic> GetKanban(RallySlackMapping map)
         {
-            
-            RallyRestApi restApi = _pool.GetApi(map.UserName, map.Password);
+            RallyRestApi restApi = _pool.GetApi(_rallyToken, _rallyUrl);
             var queryType = "Iteration";
             var query = new Query(string.Format("(StartDate <= {0})", DateTime.Now.ToString("o")));
             var requestFields = new List<string>() { "Name", "StartDate", "Project", "EndDate" };
