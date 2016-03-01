@@ -50,14 +50,15 @@ namespace RallyCat.WebApi.Controllers
             msg.MessageType = SlackMessageType.OutgoingWebhooks;
             Regex regex = new Regex(@"((US|Us|uS|us)\d{1,9})|(((dE|de|De|DE)\d{1,9}))");
             Match m = regex.Match(msg.Text);
+            string formattedId = m.Groups[0].Value;
+            String slackMessageText = msg.Text.ToLower();
+            Char pattern = '+';
+            String[] slackText = slackMessageText.Split(pattern);
 
             if (!m.Success)
             {
-                if (msg.Text.ToLower().Contains("kanban"))
-                {
-                    String slackMessageText = msg.Text.ToLower();
-                    Char pattern = '+';
-                    String[] slackText = slackMessageText.Split(pattern);
+                if (slackMessageText.Contains("kanban"))
+                {          
                     if (slackText.Length > 2)
                     {
                         foreach (string element in slackText)
@@ -76,18 +77,30 @@ namespace RallyCat.WebApi.Controllers
                 }
                 return new SlackResponseVM("_Whuaaat?_" );
             }
-
-            string formattedId = m.Groups[0].Value;
-            string result = GetItem(formattedId, msg.ChannelName);
-            return new SlackResponseVM (result);
-          
+            if (slackText.Length > 2)
+            {
+                foreach (string element in slackText)
+                {
+                    if (!(regex.IsMatch(element) || element.Contains("rallycat")))
+                    {
+                        String channel = element;
+                        string result = GetItem(formattedId, channel);
+                        return new SlackResponseVM(result);
+                    }
+                }
+            }
+            else
+            {
+                string result = GetItem(formattedId, msg.ChannelName);
+                return new SlackResponseVM(result);
+            }
+            return new SlackResponseVM("_Whuaaat?_");
         }
 
         [Route("api/Rally/Kanban/{channelName}")]
         public string GetKanban(string channelName)
         {
             var mappings = RallyBackgroundData.Instance.RallySlackMappings;
-            // var map = mappings.Find(o => o.Channels.Contains(channelName.ToLower()));
             var map = mappings.Find(o => o.Channels.Contains(channelName.ToLower()));
             if (map == null)
             {
