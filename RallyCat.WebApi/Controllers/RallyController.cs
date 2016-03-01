@@ -55,7 +55,25 @@ namespace RallyCat.WebApi.Controllers
             {
                 if (msg.Text.ToLower().Contains("kanban"))
                 {
-                    return new SlackResponseVM(GetKanban(msg.ChannelName));
+                    String slackMessageText = msg.Text.ToLower();
+                    Char pattern = '+';
+                    String[] slackText = slackMessageText.Split(pattern);
+                    if (slackText.Length > 2)
+                    {
+                        foreach (string element in slackText)
+                        {
+                            if (!(element.Contains("kanban") || element.Contains("rallycat")))
+                            {
+                                String channel = element;
+                                //return new SlackResponseVM(channel);
+                                return new SlackResponseVM(GetKanban(channel));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        return new SlackResponseVM(GetKanban(msg.ChannelName));
+                    }
                 }
                 return new SlackResponseVM("_Whuaaat?_" );
             }
