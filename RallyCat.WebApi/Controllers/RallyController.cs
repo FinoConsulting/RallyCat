@@ -65,7 +65,6 @@ namespace RallyCat.WebApi.Controllers
                             if (!(element.Contains("kanban") || element.Contains("rallycat")))
                             {
                                 String channel = element;
-                                //return new SlackResponseVM(channel);
                                 return new SlackResponseVM(GetKanban(channel));
                             }
                         }
@@ -88,6 +87,7 @@ namespace RallyCat.WebApi.Controllers
         public string GetKanban(string channelName)
         {
             var mappings = RallyBackgroundData.Instance.RallySlackMappings;
+            // var map = mappings.Find(o => o.Channels.Contains(channelName.ToLower()));
             var map = mappings.Find(o => o.Channels.Contains(channelName.ToLower()));
             if (map == null)
             {
