@@ -18,8 +18,6 @@ namespace RallyCat.Core.Services
         private string _rallyToken;
         private string _rallyUrl;
 
-        // private const string RallyToken = _rallyBackgroundData.RallyGlobalConfiguration.RallyToken;
-
         public RallyService(RallyBackgroundData backgroundData)
         {
             _pool = new RallyApiConnectionPool();
@@ -45,8 +43,6 @@ namespace RallyCat.Core.Services
 
         public QueryResult GetRallyItemByQuery(RallySlackMapping map, List<string> requestFields, Query query, string artifectName ="")
         {
-            // todo: 
- 
             var api = _pool.GetApi(_rallyToken, _rallyUrl);
             if (api == null)
             {
