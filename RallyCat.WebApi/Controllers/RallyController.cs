@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Http;
 using FluentData;
+using Microsoft.Ajax.Utilities;
 using Microsoft.SqlServer.Server;
 using RallyCat.Core;
 using RallyCat.Core.DataAccess;
@@ -54,47 +55,34 @@ namespace RallyCat.WebApi.Controllers
             String slackMessageText = msg.Text.ToLower();
             Char pattern = '+';
             String[] slackText = slackMessageText.Split(pattern);
-
-            if (!m.Success)
-            {
-                if (slackMessageText.Contains("kanban"))
-                {          
-                    if (slackText.Length > 2)
-                    {
-                        foreach (string element in slackText)
-                        {
-                            if (!(element.Contains("kanban") || element.Contains("rallycat")))
-                            {
-                                String channel = element;
-                                return new SlackResponseVM(GetKanban(channel));
-                            }
-                        }
-                    }
-                    else
-                    {
-                        return new SlackResponseVM(GetKanban(msg.ChannelName));
-                    }
-                }
-                return new SlackResponseVM("_Whuaaat?_" );
-            }
+            String channel = msg.ChannelName;
+            String result = "";
             if (slackText.Length > 2)
             {
                 foreach (string element in slackText)
                 {
-                    if (!(regex.IsMatch(element) || element.Contains("rallycat")))
+                    if (!(element.Contains("kanban") || element.Contains("rallycat") || regex.IsMatch(element)))
                     {
-                        String channel = element;
-                        string result = GetItem(formattedId, channel);
-                        return new SlackResponseVM(result);
+                        channel = element;
                     }
-                }
+                }             
+            }
+            if (m.Success)
+            {
+                result = GetItem(formattedId, channel);
             }
             else
             {
-                string result = GetItem(formattedId, msg.ChannelName);
-                return new SlackResponseVM(result);
+                if (slackMessageText.Contains("kanban"))
+                {
+                    result = GetKanban(channel);
+                }
+                else
+                {
+                    result = "Type [ProjectName] kanban OR [ProjectName] [US1234]/[DE1234]";
+                }
             }
-            return new SlackResponseVM("_Whuaaat?_");
+            return new SlackResponseVM(result);
         }
 
         [Route("api/Rally/Kanban/{channelName}")]
