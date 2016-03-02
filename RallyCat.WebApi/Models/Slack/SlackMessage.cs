@@ -22,7 +22,7 @@ namespace RallyCat.WebApi.Models.Slack
         public string TriggerWord { get; set; }
         public string Text { get; set; }
         //For Slack Command
-        public string Command { get; set; }
+        public string ResponseUrl { get; set; }
 
         //Type
         public SlackMessageType MessageType { get; set; }
@@ -48,7 +48,8 @@ namespace RallyCat.WebApi.Models.Slack
                 if (en.Contains("user_name"   )) { msg.UserName    = element[1];                                             }
                 if (en.Contains("trigger_word")) { msg.TriggerWord = element[1];                                             }
                 if (en.Contains("text"        )) { msg.Text        = element[1];                                             }
-                if (en.Contains("command"     )) { msg.Command     = element[1];                                             }
+                if (en.Contains("response_url")) { msg.ResponseUrl = element[1];                                             }
+
             }
 
             return msg;
