@@ -56,7 +56,9 @@ namespace RallyCat.WebApi.Controllers
             Char pattern = '+';
             String[] slackText = slackMessageText.Split(pattern);
             String channel = msg.ChannelName;
+            String responseUrl = msg.ResponseUrl;
             String result = "";
+
             foreach (string element in slackText)
             {
                 if (!(element.Contains("kanban") || element.Contains("rallycat") || regex.IsMatch(element)))
@@ -78,6 +80,15 @@ namespace RallyCat.WebApi.Controllers
                 {
                     result = "[project name] kanban OR [project name] US####/DE####";
                 }
+            }
+            if (responseUrl != null)
+            {
+                using (var client = new HttpClient())
+                {
+                   var responseText = new SlackResponseVM(result);
+                   var response = await client.PostAsJsonAsync(responseUrl, responseText);
+                }
+                return new SlackResponseVM("...wait for it...");
             }
             return new SlackResponseVM(result);
         }
