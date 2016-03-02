@@ -57,15 +57,12 @@ namespace RallyCat.WebApi.Controllers
             String[] slackText = slackMessageText.Split(pattern);
             String channel = msg.ChannelName;
             String result = "";
-            if (slackText.Length > 2)
+            foreach (string element in slackText)
             {
-                foreach (string element in slackText)
+                if (!(element.Contains("kanban") || element.Contains("rallycat") || regex.IsMatch(element)))
                 {
-                    if (!(element.Contains("kanban") || element.Contains("rallycat") || regex.IsMatch(element)))
-                    {
-                        channel = element;
-                    }
-                }             
+                    channel = element;
+                }
             }
             if (m.Success)
             {
@@ -79,7 +76,7 @@ namespace RallyCat.WebApi.Controllers
                 }
                 else
                 {
-                    result = "Type [ProjectName] kanban OR [ProjectName] [US1234]/[DE1234]";
+                    result = "[project name] kanban OR [project name] US####/DE####";
                 }
             }
             return new SlackResponseVM(result);
