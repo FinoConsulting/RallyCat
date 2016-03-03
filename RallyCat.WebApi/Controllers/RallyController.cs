@@ -1,17 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.IO;
+using System.Data.Entity.Core;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Http;
-using FluentData;
-using Microsoft.Ajax.Utilities;
-using Microsoft.SqlServer.Server;
 using RallyCat.Core;
 using RallyCat.Core.DataAccess;
 using RallyCat.Core.Rally;
@@ -23,17 +16,17 @@ namespace RallyCat.WebApi.Controllers
 {
     public class RallyController : ApiController
     {
-        //
-        // GET: /Rally/
-        public IDbContext _dbContext;
-        private RallyService _rallyService;
-        private GraphicService _graphicService;
-        private AzureService _azureService;
+        private readonly AzureService   _azureService;
+        private readonly GraphicService _graphicService;
+        private readonly RallyService   _rallyService;
+
         public RallyController()
         {
             RallyCatDbContext.SetConnectionString("RallyCatConnection");
-            _dbContext = RallyCatDbContext.QueryDb();
-            RallyBackgroundData.SetDbContext(_dbContext);
+
+            var dbContext = RallyCatDbContext.QueryDb();
+            RallyBackgroundData.SetDbContext(dbContext);
+
             _rallyService = new RallyService(RallyBackgroundData.Instance);
             _graphicService = new GraphicService();
             _azureService = new AzureService(RallyBackgroundData.Instance);
@@ -43,29 +36,29 @@ namespace RallyCat.WebApi.Controllers
         [HttpPost]
         public async Task<SlackResponseVM> Details()
         {
-            string input = await Request.Content.ReadAsStringAsync();
+            var input = await Request.Content.ReadAsStringAsync();
 
-            string str = input;
+            var str = input;
 
-            SlackMessage msg = SlackMessage.FromString(str);
+            var msg = SlackMessage.FromString(str);
             msg.MessageType = SlackMessageType.OutgoingWebhooks;
-            Regex regex = new Regex(@"((US|Us|uS|us)\d{1,9})|(((dE|de|De|DE)\d{1,9}))");
-            Match m = regex.Match(msg.Text);
-            string formattedId = m.Groups[0].Value;
-            String slackMessageText = msg.Text.ToLower();
-            Char pattern = '+';
-            String[] slackText = slackMessageText.Split(pattern);
-            String channel = msg.ChannelName;
-            String result = "";
+            var regex = new Regex(@"((US|Us|uS|us)\d{1,9})|(((dE|de|De|DE)\d{1,9}))");
+            var m = regex.Match(msg.Text);
+            var formattedId = m.Groups[0].Value;
+            var slackMessageText = msg.Text.ToLower();
+            var pattern = '+';
+            var slackText = slackMessageText.Split(pattern);
+            var channel = msg.ChannelName;
+            var result = "";
             if (slackText.Length > 2)
             {
-                foreach (string element in slackText)
+                foreach (var element in slackText)
                 {
                     if (!(element.Contains("kanban") || element.Contains("rallycat") || regex.IsMatch(element)))
                     {
                         channel = element;
                     }
-                }             
+                }
             }
             if (m.Success)
             {
@@ -73,14 +66,9 @@ namespace RallyCat.WebApi.Controllers
             }
             else
             {
-                if (slackMessageText.Contains("kanban"))
-                {
-                    result = GetKanban(channel);
-                }
-                else
-                {
-                    result = "Type [ProjectName] kanban OR [ProjectName] [US1234]/[DE1234]";
-                }
+                result = slackMessageText.Contains("kanban")
+                    ? GetKanban(channel)
+                    : "Type [ProjectName] kanban OR [ProjectName] [US1234]/[DE1234]";
             }
             return new SlackResponseVM(result);
         }
@@ -94,10 +82,9 @@ namespace RallyCat.WebApi.Controllers
             {
                 throw new ObjectNotFoundException("Cannot found channel name mapping for " + channelName);
             }
-            
+
             var result = _rallyService.GetKanban(map);
-            var list = result;
-            if (list == null)
+            if (result == null)
             {
                 return null;
             }
@@ -110,46 +97,53 @@ namespace RallyCat.WebApi.Controllers
             //    "ScheduleState",
             //    "Owner"
             //};
-            var kanbanGroup = list.Select(o=> KanbanItem.ConvertFrom(o,map.KanbanSortColumn)).Cast<KanbanItem>().GroupBy(k=>k.KanbanState).ToDictionary(k=>k.Key, o=>o.OrderBy(t=>t.AssignedTo).ToList());
-            Image img = _graphicService.DrawWholeKanban(500, 20, 20, 20, 100, kanbanGroup);
-            var uploaded = _azureService.Upload(img, string.Format("{0}-kanban", channelName));
-            return uploaded;
+            var kanbanGroup = new Dictionary<string, List<KanbanItem>>();
+            var kanbanItems = result.Select(o => KanbanItem.ConvertFrom(o, map.KanbanSortColumn)).Cast<KanbanItem>();
+
+            foreach (var item in kanbanItems.GroupBy(k => k.KanbanState))
+            {
+                kanbanGroup.Add(item.Key, item.OrderBy(t => t.AssignedTo).ToList());
+            }
+
+            var img = _graphicService.DrawWholeKanban(500, 20, 20, 20, 100, kanbanGroup);
+            return _azureService.Upload(img, string.Format("{0}-kanban", channelName));
         }
 
         public string GetItem(string formattedId, string channelName)
         {
-            
             if (formattedId.StartsWith("DE", StringComparison.InvariantCultureIgnoreCase))
             {
-                
+                // todo: used?
             }
+
             var mappings = RallyBackgroundData.Instance.RallySlackMappings;
             var map = mappings.Find(o => o.Channels.Contains(channelName.ToLower()));
-            if (map == null)
-            {
-                throw new ObjectNotFoundException("Cannot found channel name mapping for " + channelName);
-            }
-            
-            var result = _rallyService.GetRallyItemById(map, formattedId);
-            var item = result.Results.FirstOrDefault();
-            if (item == null)
-            {
-                return null;
-            }
-            string itemName = (string)item["Name"];
-            string itemDescription = ((string)item["Description"]).HtmlToPlainText();
-            return "_" + GetWelcomeMsg() + "_" + "\r\n\r\n" + "*" + itemName.ToUpper() + "*\r\n" + "*" + itemName + "*" + "\r\n" + itemDescription;
 
+            if (map == null) { throw new ObjectNotFoundException("Cannot found channel name mapping for " + channelName); }
+
+            var result = _rallyService.GetRallyItemById(map, formattedId);
+            var item   = result.Results.FirstOrDefault();
+
+            if (item == null) { return null; }
+
+            var itemName        = (string)item["Name"];
+            var itemDescription = ((string) item["Description"]).HtmlToPlainText();
+            return String.Format("_{0}_" + "\r\n\r\n" + "*{1}*\r\n" + "*{2}*" + "\r\n{3}", GetWelcomeMsg(), itemName.ToUpper(), itemName, itemDescription);
         }
 
 
-
-
-
-        private string GetWelcomeMsg()
+        private static string GetWelcomeMsg()
         {
-            List<string> welcomes = new List<string> { "how can I help all of you slackers?", "you called?", "Wassup?", "I think I heard my name", "Yes?", "At your service" };
-            Random r = new Random((int)DateTime.Now.Ticks);
+            var welcomes = new List<string>
+            {
+                "how can I help all of you slackers?",
+                "you called?",
+                "Wassup?",
+                "I think I heard my name",
+                "Yes?",
+                "At your service"
+            };
+            var r = new Random((int) DateTime.Now.Ticks);
             return welcomes[r.Next(0, welcomes.Count - 1)];
         }
     }

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 
 namespace RallyCat.WebApi.Models.Slack
 {
@@ -31,67 +28,30 @@ namespace RallyCat.WebApi.Models.Slack
         public SlackMessageType MessageType { get; set; }
 
 
-
-
         public static SlackMessage FromString(string source)
         {
             //token=zvhpiUW4HnFUACA1lPFZuQXO&team_id=T024SS9SJ&team_domain=finoconsulting&service_id=2539062323&channel_id=C029YKXUP&channel_name=slacktesting&timestamp=1410311282.000007&user_id=U024T9P3E&user_name=cheng.huang&text=rallybot%3A+US1243&trigger_word=rallybot%3A 
-            SlackMessage msg = new SlackMessage();
-            var entries = source.Split(new[] { '&' });
+            var msg = new SlackMessage();
+            var entries = source.Split('&');
             foreach (var en in entries)
             {
-                var element = en.Split(new[] { '=' });
-                if (en.Contains("token"))
-                {
-                    msg.Token = element[1];
-                }
-                if (en.Contains("team_id"))
-                {
-                    msg.TeamId = element[1];
-                }
-                if (en.Contains("team_domain"))
-                {
-                    msg.TeamDomain = element[1];
-                }
-                if (en.Contains("service_id"))
-                {
-                    msg.ServiceId = element[1];
-                }
-                if (en.Contains("channel_id"))
-                {
-                    msg.ChannelId = element[1];
-                }
-                if (en.Contains("channel_name"))
-                {
-                    msg.ChannelName = element[1];
-                }
-                if (en.Contains("timestamp"))
-                {
-                    msg.TimeStamp = Convert.ToDouble(element[1]).UnixTimeStampToDateTime();
-                }
-                if (en.Contains("user_id"))
-                {
-                    msg.UserId = element[1];
-                }
-                if (en.Contains("user_name"))
-                {
-                    msg.UserName = element[1];
-                }
-                if (en.Contains("trigger_word"))
-                {
-                    msg.TriggerWord = element[1];
-                }
-                if (en.Contains("text"))
-                {
-                    msg.Text = element[1];
-                }
-                if (en.Contains("command"))
-                {
-                    msg.Command = element[1];
-                }
+                var element = en.Split('=');
+
+                if (en.Contains("token"       )) { msg.Token       = element[1];                                             }
+                if (en.Contains("team_id"     )) { msg.TeamId      = element[1];                                             }
+                if (en.Contains("team_domain" )) { msg.TeamDomain  = element[1];                                             }
+                if (en.Contains("service_id"  )) { msg.ServiceId   = element[1];                                             }
+                if (en.Contains("channel_id"  )) { msg.ChannelId   = element[1];                                             }
+                if (en.Contains("channel_name")) { msg.ChannelName = element[1];                                             }
+                if (en.Contains("timestamp"   )) { msg.TimeStamp   = Convert.ToDouble(element[1]).UnixTimeStampToDateTime(); }
+                if (en.Contains("user_id"     )) { msg.UserId      = element[1];                                             }
+                if (en.Contains("user_name"   )) { msg.UserName    = element[1];                                             }
+                if (en.Contains("trigger_word")) { msg.TriggerWord = element[1];                                             }
+                if (en.Contains("text"        )) { msg.Text        = element[1];                                             }
+                if (en.Contains("command"     )) { msg.Command     = element[1];                                             }
             }
+
             return msg;
         }
-
     }
 }
