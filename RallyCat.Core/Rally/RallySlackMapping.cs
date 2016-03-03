@@ -1,21 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace RallyCat.Core.Rally
 {
     public class RallySlackMapping
     {
-        public int Id { get; set; }
-        public string TeamName { get; set; }
-        public long ProjectId { get; set; }
-        public long WorkspaceId { get; set; }
-        public string KanbanSortColumn { get; set; }
-        public bool EnableKanban { get; set; }
-        public List<string> Channels { get; set; }
+        public Int32        Id               { get; set; }
+        public String       TeamName         { get; set; }
+        public Int64        ProjectId        { get; set; }
+        public Int64        WorkspaceId      { get; set; }
+        public String       KanbanSortColumn { get; set; }
+        public Boolean      EnableKanban     { get; set; }
+        public List<String> Channels         { get; set; }
     }
-
-
 }

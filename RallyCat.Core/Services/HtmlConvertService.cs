@@ -3,54 +3,44 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using HtmlAgilityPack;
+
 
 namespace RallyCat.Core.Services
 {
     public class HtmlConvertService
     {
-        public string ConvertFromString(string str)
-        {
-            HtmlDocument doc = new HtmlDocument();
-            doc.Load(str.ToStream(),Encoding.UTF8);
+        private const String c_RallyHostUrl = @"https://rally1.rallydev.com";
 
-            StringWriter sw = new StringWriter();
-            
+        private Int32 _TLevel;
+        private Boolean _BTag;
+
+        public String ConvertFromString(String str)
+        {
+            var doc = new HtmlDocument();
+            doc.Load(str.ToStream(), Encoding.UTF8);
+
+            var sw = new StringWriter();
+
             ConvertTo(doc.DocumentNode, sw);
             sw.Flush();
             return sw.ToString();
         }
 
-        public List<string> GetAllImageSrcs(string str)
+        public List<String> GetAllImageSrcs(String str)
         {
-            HtmlDocument doc = new HtmlDocument();
+            var doc = new HtmlDocument();
             doc.Load(str.ToStream());
 
-            HtmlNodeCollection imgs = new HtmlNodeCollection(doc.DocumentNode.ParentNode);
-            imgs = doc.DocumentNode.SelectNodes("//img");
-            if (imgs == null || !imgs.Any())
-            {
-                return null;
-            }
-            var result = imgs.Select(i => @"https://rally1.rallydev.com"+i.Attributes[@"src"].Value).ToList();
+            var imgs = doc.DocumentNode.SelectNodes("//img");
+            if ((imgs == null) || !imgs.Any()) { return null; }
+
+            var result = imgs.Select(i => c_RallyHostUrl + i.Attributes[@"src"].Value).ToList();
             return result;
-        }
-
-        private int _tlevel = 0;
-        private bool _bTag = false;
-
-        private void ConvertContentTo(HtmlNode node, TextWriter outText)
-        {
-            foreach (HtmlNode subnode in node.ChildNodes)
-            {
-                ConvertTo(subnode, outText);
-            }
         }
 
         public void ConvertTo(HtmlNode node, TextWriter outText)
         {
-            string html;
             switch (node.NodeType)
             {
                 case HtmlNodeType.Comment:
@@ -63,30 +53,33 @@ namespace RallyCat.Core.Services
 
                 case HtmlNodeType.Text:
                     // script and style must not be output
-                    string parentName = node.ParentNode.Name;
+                    var parentName = node.ParentNode.Name;
                     if ((parentName == "script") || (parentName == "style"))
+                    {
                         break;
+                    }
 
                     // get text
-                    html = ((HtmlTextNode)node).Text;
+                    var html = ((HtmlTextNode)node).Text;
 
                     // is it in fact a special closing node output as text?
                     if (HtmlNode.IsOverlappedClosingElement(html))
+                    {
                         break;
+                    }
 
                     // check the text is meaningful and not a bunch of whitespaces
                     if (html.Trim().Length > 0)
                     {
-                        if (_bTag)
+                        if (_BTag)
                         {
                             outText.Write("*");
                         }
                         outText.Write(HtmlEntity.DeEntitize(html));
-                        if (_bTag)
+                        if (_BTag)
                         {
                             outText.Write("*");
                         }
-                        
                     }
                     break;
 
@@ -94,7 +87,7 @@ namespace RallyCat.Core.Services
                     switch (node.Name)
                     {
                         case "b":
-                            _bTag = true;
+                            _BTag = true;
                             // treat paragraphs as crlf
                             break;
                         case "p":
@@ -112,12 +105,12 @@ namespace RallyCat.Core.Services
                         case "ul":
                             // treat paragraphs as crlf
                             outText.Write("\r\n");
-                            _tlevel += 1;
+                            _TLevel += 1;
                             break;
                         case "li":
                             // treat paragraphs as crlf
-                            
-                            var ts = string.Join("", Enumerable.Repeat("\t", _tlevel));
+
+                            var ts = String.Join("", Enumerable.Repeat("\t", _TLevel));
                             outText.Write("\r\n");
                             outText.Write(">");
                             outText.Write(ts);
@@ -132,16 +125,23 @@ namespace RallyCat.Core.Services
                     switch (node.Name)
                     {
                         case "b":
-                            _bTag = false;
+                            _BTag = false;
                             break;
                         case "ul":
-                            _tlevel -= 1;
+                            _TLevel -= 1;
                             break;
                     }
 
                     break;
             }
         }
+
+        private void ConvertContentTo(HtmlNode node, TextWriter outText)
+        {
+            foreach (var subnode in node.ChildNodes)
+            {
+                ConvertTo(subnode, outText);
+            }
+        }
     }
-    
 }

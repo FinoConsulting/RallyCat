@@ -2,104 +2,83 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Authentication;
-using System.Text;
-using System.Threading.Tasks;
-using FluentData;
-using Rally.RestApi;
 using Rally.RestApi.Response;
-using RallyCat.Core.DataAccess;
 using RallyCat.Core.Rally;
 using RallyApi = Rally.RestApi;
+
+
 namespace RallyCat.Core.Services
 {
     public class RallyService
     {
-        private RallyApiConnectionPool _pool;
-        private string _rallyToken;
-        private string _rallyUrl;
+        private readonly RallyApiConnectionPool _Pool;
+        private readonly String                 _RallyToken;
+        private readonly String                 _RallyUrl;
 
-        public RallyService(RallyBackgroundData backgroundData)
+        public RallyService(RallyBackgroundDataService backgroundDataService)
         {
-            _pool = new RallyApiConnectionPool();
-            _rallyToken = backgroundData.RallyGlobalConfiguration.RallyToken;
-            _rallyUrl = backgroundData.RallyGlobalConfiguration.RallyUrl;
+            _Pool       = new RallyApiConnectionPool();
+            _RallyToken = backgroundDataService.RallyGlobalConfiguration.RallyToken;
+            _RallyUrl   = backgroundDataService.RallyGlobalConfiguration.RallyUrl;
         }
 
-        
-
-        public QueryResult GetRallyItemById(RallySlackMapping map, string formattedId)
+        public QueryResult GetRallyItemById(RallySlackMapping map, String formattedId)
         {
             var queryType = "hierarchicalrequirement";
             if (formattedId.StartsWith("de", StringComparison.InvariantCultureIgnoreCase))
             {
                 queryType = "defect";
             }
-            var query = new Query("FormattedID", Query.Operator.Equals, formattedId);
-            var requestFields = new List<string>() { "Name", "Description", "FormattedID" };
-            return GetRallyItemByQuery( map, requestFields, query,queryType);
-            
 
+            var query         = new RallyApi.Query("FormattedID", RallyApi.Query.Operator.Equals, formattedId);
+            var requestFields = new List<String> { "Name", "Description", "FormattedID" };
+            return GetRallyItemByQuery(map, requestFields, query, queryType);
         }
 
-        public QueryResult GetRallyItemByQuery(RallySlackMapping map, List<string> requestFields, Query query, string artifectName ="")
+        public QueryResult GetRallyItemByQuery(RallySlackMapping map, List<String> requestFields, RallyApi.Query query, String artifectName = "")
         {
-            var api = _pool.GetApi(_rallyToken, _rallyUrl);
-            if (api == null)
-            {
-                throw new AuthenticationException("Cannot verify rally login");
-            }
-            Request request;
-            if (string.IsNullOrEmpty(artifectName))
-            {
-                request = new Request();
-            }
-            else
-            {
-                request = new Request(artifectName);
-            }
-            request.Project = "/project/" + map.ProjectId;
+            var api = _Pool.GetApi(_RallyToken, _RallyUrl);
+            if (api == null) { throw new AuthenticationException("Cannot verify rally login"); }
+
+            var request = String.IsNullOrEmpty(artifectName) 
+                ? new RallyApi.Request() 
+                : new RallyApi.Request(artifectName);
+
+            request.Project   = "/project/" + map.ProjectId;
             request.Workspace = "/workspace/" + map.WorkspaceId;
-            //request.Fetch = new List<string>() { "Name", "Description", "FormattedID" };
-            request.Fetch = requestFields;
-            request.Query = query;
-            QueryResult queryResult = api.Query(request);
+            //request.Fetch   = new List<string>() { "Name", "Description", "FormattedID" };
+            request.Fetch     = requestFields;
+            request.Query     = query;
+            var queryResult   = api.Query(request);
+
             return queryResult;
         }
 
         public List<dynamic> GetKanban(RallySlackMapping map)
         {
-            RallyRestApi restApi = _pool.GetApi(_rallyToken, _rallyUrl);
+            // todo: review -- move this into a method call, then collate the result sets
+
             var queryType = "Iteration";
-            var query = new Query(string.Format("(StartDate <= {0})", DateTime.Now.ToString("o")));
-            var requestFields = new List<string>() { "Name", "StartDate", "Project", "EndDate" };
-            QueryResult queryResult = GetRallyItemByQuery( map, requestFields, query,queryType);
+            var query = new RallyApi.Query(String.Format("(StartDate <= {0})", DateTime.Now.ToString("o")));
 
-            string iterationName;
+            // todo: review -- move this into a view model / DTO
 
-            if (queryResult.Results.Any())
-            {
-                //var iter = queryResult.Results.Select(e => new Iteration(e)).Where(r => r.StartDate <= DateTime.Now).OrderByDescending(r => r.StartDate).First();
-                var iter =
-                    queryResult.Results.Select(
-                        e =>
-                            new
-                            {
-                                Name = e["Name"],
-                                StartDate = e["StartDate"] == null ? DateTime.MinValue : DateTime.Parse(e["StartDate"]),
-                                EndDate = e["EndDate"] == null ? DateTime.MaxValue : DateTime.Parse(e["EndDate"])
-                            }).OrderByDescending(p=>p.StartDate).First();
-                iterationName = iter.Name;
+            var requestFields = new List<String> { "Name", "StartDate", "Project", "EndDate" };
+            var queryResult = GetRallyItemByQuery(map, requestFields, query, queryType);
 
-            }
-            else
-            {
-                return null;
-            }
+            if (!queryResult.Results.Any()) { return null; }
+            var iter = queryResult.Results.Select(result =>
+                new
+                {
+                    Name               = result["Name"],
+                    StartDate          = result["StartDate"] == null ? DateTime.MinValue : DateTime.Parse(result["StartDate"]),
+                    EndDate            = result["EndDate"]   == null ? DateTime.MaxValue : DateTime.Parse(result["EndDate"])
+                }).OrderByDescending(p => p.StartDate).First();
 
             //User stories
-            queryType = "hierarchicalrequirement";
-            query = new Query("Iteration.Name", Query.Operator.Equals, iterationName);
-            requestFields = new List<string>()
+            queryType     = "hierarchicalrequirement";
+            query         = new RallyApi.Query("Iteration.Name", RallyApi.Query.Operator.Equals, iter.Name);
+            requestFields = new List<String>
             {
                 "Name",
                 "ObjectID",
@@ -107,20 +86,20 @@ namespace RallyCat.Core.Services
                 "Description",
                 "Blocked",
                 "BlockedReason",
-                "Owner"
+                "Owner",
+                map.KanbanSortColumn
             };
-            requestFields.Add(map.KanbanSortColumn);
-            var result0 = GetRallyItemByQuery( map, requestFields, query, queryType);
+
+            var result0 = GetRallyItemByQuery(map, requestFields, query, queryType);
 
             //Defects
-            queryType = "defect";
-            var result1 = GetRallyItemByQuery(map, requestFields, query, queryType);
-            var result = result0.Results.ToList();
-            result.AddRange(result1.Results);
-            return result;
+            queryType      = "defect";
+            var result1    = GetRallyItemByQuery(map, requestFields, query, queryType);
+            var resultList = result0.Results.ToList();
+
+            resultList.AddRange(result1.Results);
+
+            return resultList;
         }
-
-
-
     }
 }

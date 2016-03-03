@@ -8,42 +8,51 @@ namespace RallyCat.Core.Rally
 {
     public class KanbanItem
     {
-        public string FormattedId { get; set; }
-        public string AssignedTo { get; set; }
-        public string StoryDescription { get; set; }
-        public bool IsBlocked { get; set; }
-        public string BlockedReason { get; set; }
-        public string KanbanState { get; set; }
-        public KanbanItem(string kanbanState, string formattedId, string assignedTo, string storyDescription)
+        public String  FormattedId      { get; set; }
+        public String  AssignedTo       { get; set; }
+        public String  StoryDescription { get; set; }
+        public Boolean IsBlocked        { get; set; }
+        public String  BlockedReason    { get; set; }
+        public String  KanbanState      { get; set; }
+
+        public KanbanItem(String kanbanState, String formattedId, String assignedTo, String storyDescription)
         {
-            KanbanState = kanbanState;
-            FormattedId = formattedId;
-            AssignedTo = assignedTo;
+            KanbanState      = kanbanState;
+            FormattedId      = formattedId;
+            AssignedTo       = assignedTo;
             StoryDescription = storyDescription;
-            IsBlocked = false;
+            IsBlocked        = false;
             
         }
 
-        public KanbanItem(string kanbanState, string formattedId, string assignedTo, string storyDescription, string blockedReason)
+        public KanbanItem(String kanbanState, String formattedId, String assignedTo, String storyDescription, String blockedReason)
         {
-            KanbanState = kanbanState;
-            FormattedId = formattedId;
-            AssignedTo = assignedTo;
+            KanbanState      = kanbanState;
+            FormattedId      = formattedId;
+            AssignedTo       = assignedTo;
             StoryDescription = storyDescription;
-            IsBlocked = true;
-            BlockedReason = blockedReason;
+            IsBlocked        = true;
+            BlockedReason    = blockedReason;
         }
 
-        public static KanbanItem ConvertFrom(dynamic queryResult, string kanbanStateKeyWord)
+        public static KanbanItem ConvertFrom(dynamic queryResult, String kanbanStateKeyWord)
         {
             var s = queryResult;
+
+            var formattedId = s["FormattedID"];
+            // var owner
+            // var name
+            // etc.
+
+            // todo: Jenny, please go make these not hurt to look at
+
             if (s["Blocked"])
             {
-                return new KanbanItem(s[kanbanStateKeyWord] ?? "None", s["FormattedID"], s["Owner"] == null ? "(None)" : s["Owner"]["_refObjectName"], s["Name"], s["BlockedReason"]);
+                return new KanbanItem(s[kanbanStateKeyWord] ?? "None", formattedId, s["Owner"] == null ? "(None)" : s["Owner"]["_refObjectName"], s["Name"], s["BlockedReason"]);
             }
             else
             {
-                return new KanbanItem(s[kanbanStateKeyWord] ?? "None", s["FormattedID"], s["Owner"] == null ? "(None)" : s["Owner"]["_refObjectName"], s["Name"]);
+                return new KanbanItem(s[kanbanStateKeyWord] ?? "None", formattedId, s["Owner"] == null ? "(None)" : s["Owner"]["_refObjectName"], s["Name"]);
             }
         }
     }

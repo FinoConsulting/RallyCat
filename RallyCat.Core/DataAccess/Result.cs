@@ -8,8 +8,8 @@ namespace RallyCat.Core.DataAccess
 {
     public class Result <T>
     {
-        public bool Success { get; set; }
-        public string ErrorMessage { get; set; }
-        public T Object { get; set; }
+        public Boolean Success      { get; set; }
+        public String  ErrorMessage { get; set; }
+        public T       Object       { get; set; }
     }
 }

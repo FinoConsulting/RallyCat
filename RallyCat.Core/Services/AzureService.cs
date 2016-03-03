@@ -1,46 +1,45 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace RallyCat.Core.Services
 {
     public class AzureService
     {
-        private RallyBackgroundData _rallyBackgroundData;
+        private readonly RallyBackgroundDataService _RallyBackgroundDataService;
 
-        public AzureService( RallyBackgroundData backgroundData)
+        public AzureService(RallyBackgroundDataService backgroundDataService)
         {
-            _rallyBackgroundData = backgroundData;
+            _RallyBackgroundDataService = backgroundDataService;
         }
-        public string Upload(Image img, string fileName)
+
+        public String Upload(Image img, String fileName)
         {
-            
-            var azureName = _rallyBackgroundData.RallyGlobalConfiguration.AzureBlobName;
-            var azureToken = _rallyBackgroundData.RallyGlobalConfiguration.AzureToken;
-            var azureContainerRef = _rallyBackgroundData.RallyGlobalConfiguration.AzureBlobContainerRef;
-            var kanbanImageFormat = _rallyBackgroundData.RallyGlobalConfiguration.KanbanImageFormat;
-            StorageCredentials sc = new StorageCredentials(azureName, azureToken);
-            CloudStorageAccount acc = new CloudStorageAccount(sc, false);
-            CloudBlobClient bc = acc.CreateCloudBlobClient();
-            CloudBlobContainer bcon = bc.GetContainerReference(azureContainerRef);
-            CloudBlockBlob cbb = bcon.GetBlockBlobReference(fileName + DateTime.Now.ToString("o").Replace(":", "_") + ".jpg");
+            var azureName         = _RallyBackgroundDataService.RallyGlobalConfiguration.AzureBlobName;
+            var azureToken        = _RallyBackgroundDataService.RallyGlobalConfiguration.AzureToken;
+            var azureContainerRef = _RallyBackgroundDataService.RallyGlobalConfiguration.AzureBlobContainerRef;
+            var kanbanImageFormat = _RallyBackgroundDataService.RallyGlobalConfiguration.KanbanImageFormat;
+
+            var storageCreds      = new StorageCredentials(azureName, azureToken);
+            var storageAcct       = new CloudStorageAccount(storageCreds, false);
+            var blobClient        = storageAcct.CreateCloudBlobClient();
+
+            var bcon              = blobClient.GetContainerReference(azureContainerRef);
+            var cbb               = bcon.GetBlockBlobReference(fileName + DateTime.Now.ToString("o").Replace(":", "_") + ".jpg");
+
             cbb.Properties.ContentType = kanbanImageFormat;
-            using (MemoryStream ms = new MemoryStream())
+
+            using (var stream = new MemoryStream())
             {
-                img.Save(ms, ImageFormat.Png);
-                byte[] b = ms.GetBuffer();
-                cbb.UploadFromByteArray(b, 0, b.Count());
+                img.Save(stream, ImageFormat.Png);
+                var buffer = stream.GetBuffer();
+                cbb.UploadFromByteArray(buffer, 0, buffer.Count());
             }
-            var path = cbb.Uri.AbsoluteUri;
-            return path;
+            return cbb.Uri.AbsoluteUri;
         }
     }
 }

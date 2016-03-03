@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -87,7 +88,7 @@ namespace RallyCat.Core.Tests
             var itemg2 = new List<KanbanItem> {item2, item3, item0, item5};
             var itemg3 = new List<KanbanItem> {item4};
             var itemg4 = new List<KanbanItem> {item5, item6};
-            var dict = new Dictionary<string, List<KanbanItem>>();
+            var dict = new Dictionary<String, List<KanbanItem>>();
             dict.Add("C1", itemg1);
             dict.Add("C2", itemg2);
             dict.Add("C3", itemg3);

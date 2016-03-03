@@ -11,17 +11,17 @@ namespace RallyCat.Core.Helpers
 {
     public static class GraphicsHelper
     {
-        const int CHANNELS = 4;
-        public static Bitmap CreateShadow(this Bitmap bitmap, int radius, float opacity)
+        const Int32 CHANNELS = 4;
+        public static Bitmap CreateShadow(this Bitmap bitmap, Int32 radius, Single opacity)
         {
             
             // Alpha mask with opacity
-            var matrix = new ColorMatrix(new float[][] {
-            new float[] {  0F,  0F,  0F, 0F,      0F }, 
-            new float[] {  0F,  0F,  0F, 0F,      0F }, 
-            new float[] {  0F,  0F,  0F, 0F,      0F }, 
-            new float[] { -1F, -1F, -1F, opacity, 0F },
-            new float[] {  1F,  1F,  1F, 0F,      1F }
+            var matrix = new ColorMatrix(new Single[][] {
+            new Single[] {  0F,  0F,  0F, 0F,      0F }, 
+            new Single[] {  0F,  0F,  0F, 0F,      0F }, 
+            new Single[] {  0F,  0F,  0F, 0F,      0F }, 
+            new Single[] { -1F, -1F, -1F, opacity, 0F },
+            new Single[] {  1F,  1F,  1F, 0F,      1F }
         });
 
             var imageAttributes = new ImageAttributes();
@@ -45,105 +45,105 @@ namespace RallyCat.Core.Helpers
             return shadow;
         }
 
-        private static unsafe void BoxBlur(BitmapData data1, BitmapData data2, int width, int height, int radius)
+        private static unsafe void BoxBlur(BitmapData data1, BitmapData data2, Int32 width, Int32 height, Int32 radius)
         {
-            byte* p1 = (byte*)(void*)data1.Scan0;
+            Byte* p1 = (Byte*)(void*)data1.Scan0;
             
-            byte* p2 = (byte*)(void*)data2.Scan0;
+            Byte* p2 = (Byte*)(void*)data2.Scan0;
 
-            int radius2 = 2 * radius + 1;
-            int[] sum = new int[CHANNELS];
-            int[] FirstValue = new int[CHANNELS];
-            int[] LastValue = new int[CHANNELS];
+            Int32 radius2 = 2 * radius + 1;
+            Int32[] sum = new Int32[CHANNELS];
+            Int32[] FirstValue = new Int32[CHANNELS];
+            Int32[] LastValue = new Int32[CHANNELS];
 
             // Horizontal
-            int stride = data1.Stride;
+            Int32 stride = data1.Stride;
             for (var row = 0; row < height; row++)
             {
-                int start = row * stride;
-                int left = start;
-                int right = start + radius * CHANNELS;
+                Int32 start = row * stride;
+                Int32 left = start;
+                Int32 right = start + radius * CHANNELS;
 
-                for (int channel = 0; channel < CHANNELS; channel++)
+                for (Int32 channel = 0; channel < CHANNELS; channel++)
                 {
                     FirstValue[channel] = p1[start + channel];
                     LastValue[channel] = p1[start + (width - 1) * CHANNELS + channel];
                     sum[channel] = (radius + 1) * FirstValue[channel];
                 }
                 for (var column = 0; column < radius; column++)
-                    for (int channel = 0; channel < CHANNELS; channel++)
+                    for (Int32 channel = 0; channel < CHANNELS; channel++)
                         sum[channel] += p1[start + column * CHANNELS + channel];
                 for (var column = 0; column <= radius; column++, right += CHANNELS, start += CHANNELS)
-                    for (int channel = 0; channel < CHANNELS; channel++)
+                    for (Int32 channel = 0; channel < CHANNELS; channel++)
                     {
                         sum[channel] += p1[right + channel] - FirstValue[channel];
-                        p2[start + channel] = (byte)(sum[channel] / radius2);
+                        p2[start + channel] = (Byte)(sum[channel] / radius2);
                     }
                 for (var column = radius + 1; column < width - radius; column++, left += CHANNELS, right += CHANNELS, start += CHANNELS)
-                    for (int channel = 0; channel < CHANNELS; channel++)
+                    for (Int32 channel = 0; channel < CHANNELS; channel++)
                     {
                         sum[channel] += p1[right + channel] - p1[left + channel];
-                        p2[start + channel] = (byte)(sum[channel] / radius2);
+                        p2[start + channel] = (Byte)(sum[channel] / radius2);
                     }
                 for (var column = width - radius; column < width; column++, left += CHANNELS, start += CHANNELS)
-                    for (int channel = 0; channel < CHANNELS; channel++)
+                    for (Int32 channel = 0; channel < CHANNELS; channel++)
                     {
                         sum[channel] += LastValue[channel] - p1[left + channel];
-                        p2[start + channel] = (byte)(sum[channel] / radius2);
+                        p2[start + channel] = (Byte)(sum[channel] / radius2);
                     }
             }
 
             // Vertical
             stride = data2.Stride;
-            for (int column = 0; column < width; column++)
+            for (Int32 column = 0; column < width; column++)
             {
-                int start = column * CHANNELS;
-                int top = start;
-                int bottom = start + radius * stride;
+                Int32 start = column * CHANNELS;
+                Int32 top = start;
+                Int32 bottom = start + radius * stride;
 
-                for (int channel = 0; channel < CHANNELS; channel++)
+                for (Int32 channel = 0; channel < CHANNELS; channel++)
                 {
                     FirstValue[channel] = p2[start + channel];
                     LastValue[channel] = p2[start + (height - 1) * stride + channel];
                     sum[channel] = (radius + 1) * FirstValue[channel];
                 }
-                for (int row = 0; row < radius; row++)
-                    for (int channel = 0; channel < CHANNELS; channel++)
+                for (Int32 row = 0; row < radius; row++)
+                    for (Int32 channel = 0; channel < CHANNELS; channel++)
                         sum[channel] += p2[start + row * stride + channel];
-                for (int row = 0; row <= radius; row++, bottom += stride, start += stride)
-                    for (int channel = 0; channel < CHANNELS; channel++)
+                for (Int32 row = 0; row <= radius; row++, bottom += stride, start += stride)
+                    for (Int32 channel = 0; channel < CHANNELS; channel++)
                     {
                         sum[channel] += p2[bottom + channel] - FirstValue[channel];
-                        p1[start + channel] = (byte)(sum[channel] / radius2);
+                        p1[start + channel] = (Byte)(sum[channel] / radius2);
                     }
-                for (int row = radius + 1; row < height - radius; row++, top += stride, bottom += stride, start += stride)
-                    for (int channel = 0; channel < CHANNELS; channel++)
+                for (Int32 row = radius + 1; row < height - radius; row++, top += stride, bottom += stride, start += stride)
+                    for (Int32 channel = 0; channel < CHANNELS; channel++)
                     {
                         sum[channel] += p2[bottom + channel] - p2[top + channel];
-                        p1[start + channel] = (byte)(sum[channel] / radius2);
+                        p1[start + channel] = (Byte)(sum[channel] / radius2);
                     }
-                for (int row = height - radius; row < height; row++, top += stride, start += stride)
-                    for (int channel = 0; channel < CHANNELS; channel++)
+                for (Int32 row = height - radius; row < height; row++, top += stride, start += stride)
+                    for (Int32 channel = 0; channel < CHANNELS; channel++)
                     {
                         sum[channel] += LastValue[channel] - p2[top + channel];
-                        p1[start + channel] = (byte)(sum[channel] / radius2);
+                        p1[start + channel] = (Byte)(sum[channel] / radius2);
                     }
             }
         }
 
-        private static int[] DetermineBoxes(double Sigma, int BoxCount)
+        private static Int32[] DetermineBoxes(Double Sigma, Int32 BoxCount)
         {
-            double IdealWidth = Math.Sqrt((12 * Sigma * Sigma / BoxCount) + 1);
-            int Lower = (int)Math.Floor(IdealWidth);
+            Double IdealWidth = Math.Sqrt((12 * Sigma * Sigma / BoxCount) + 1);
+            Int32 Lower = (Int32)Math.Floor(IdealWidth);
             if (Lower % 2 == 0)
                 Lower--;
-            int Upper = Lower + 2;
+            Int32 Upper = Lower + 2;
 
-            double MedianWidth = (12 * Sigma * Sigma - BoxCount * Lower * Lower - 4 * BoxCount * Lower - 3 * BoxCount) / (-4 * Lower - 4);
-            int Median = (int)Math.Round(MedianWidth);
+            Double MedianWidth = (12 * Sigma * Sigma - BoxCount * Lower * Lower - 4 * BoxCount * Lower - 3 * BoxCount) / (-4 * Lower - 4);
+            Int32 Median = (Int32)Math.Round(MedianWidth);
 
-            int[] BoxSizes = new int[BoxCount];
-            for (int i = 0; i < BoxCount; i++)
+            Int32[] BoxSizes = new Int32[BoxCount];
+            for (Int32 i = 0; i < BoxCount; i++)
                 BoxSizes[i] = (i < Median) ? Lower : Upper;
             return BoxSizes;
         }

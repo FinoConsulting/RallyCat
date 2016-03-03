@@ -7,17 +7,19 @@ using System.Web;
 
 namespace RallyCat.WebApi.ViewModels
 {
-    public class SlackResponseVM
+    public class SlackResponseVm
     {
-        public SlackResponseVM()
+        public SlackResponseVm()
         {
             
         }
 
-        public SlackResponseVM(string t)
+        public SlackResponseVm(String t)
         {
             text = t;
         }
-        public string text { get; set; }
+
+        // todo: add json names for these properties
+        public String text { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using FluentData;
 using RallyCat.Core.Interfaces;
@@ -8,39 +9,41 @@ namespace RallyCat.Core.DataAccess
 {
     public class RallySlackMappingRepository : IRallySlackMappingRepository
     {
-        public IDbContext _dbContext;
+        public IDbContext DbContext;
 
         public RallySlackMappingRepository(IDbContext dbContext)
         {
-            _dbContext = dbContext;
+            DbContext = dbContext;
         }
 
         public Result<List<RallySlackMapping>> GetAll()
         {
             var result = new Result<List<RallySlackMapping>>();
-            using (IDbContext context = _dbContext)
+            using (var context = DbContext)
             {
-                List<RallySlackMapping> item =
-                    context.Sql(@"select * from RallyConfigurations").QueryMany((RallySlackMapping o, IDataReader r) =>
+                var query = @"select * from RallyConfigurations";
+                var item =
+                    context.Sql(query).QueryMany((RallySlackMapping o, IDataReader r) =>
                     {
-                        o.Id = (int) r["Id"];
-                        o.TeamName = (string) r["TeamName"];
-                        o.ProjectId = (long) r["ProjectId"];
-                        o.WorkspaceId = (long) r["WorkspaceId"];
-                        o.KanbanSortColumn = (string) r["KanbanSortColumn"];
-                        o.EnableKanban = (bool) r["EnableKanban"];
-                        o.Channels = ((string) r["Channels"]).Split(',').ToList();
+                        o.Id               =  (Int32)   r["Id"              ];
+                        o.TeamName         =  (String)  r["TeamName"        ];
+                        o.ProjectId        =  (Int64)   r["ProjectId"       ];
+                        o.WorkspaceId      =  (Int64)   r["WorkspaceId"     ];
+                        o.KanbanSortColumn =  (String)  r["KanbanSortColumn"];
+                        o.EnableKanban     =  (Boolean) r["EnableKanban"    ];
+                        o.Channels         = ((String)  r["Channels"        ]).Split(',').ToList();
                     });
 
                 if (item == null)
                 {
                     result.Success = false;
-                    result.Object = null;
+                    result.Object  = null;
                     return result;
                 }
-                result.Object = item;
+                result.Object  = item;
                 result.Success = true;
             }
+
             return result;
         }
     }

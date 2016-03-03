@@ -1,35 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using RallyCat.Core.Services;
+
 
 namespace RallyCat.Core
 {
     public static class Extensions
     {
-        public static Stream ToStream(this string str)
+        public static Stream ToStream(this String str)
         {
-            MemoryStream stream = new MemoryStream();
-            StreamWriter writer = new StreamWriter(stream);
+            // todo: RESEARCH: using blocks ?
+            //using (var stream = new MemoryStream())
+            //{
+            //    using (var sw = new StreamWriter(stream))
+            //    {
+            //        // do the stuff
+            //    }
+            //}
+
+            var stream = new MemoryStream();
+            var writer = new StreamWriter(stream);
             writer.Write(str);
             writer.Flush();
             stream.Position = 0;
             return stream;
         }
-        public static string HtmlToPlainText(this string htmlString)
+
+        public static String HtmlToPlainText(this String htmlString)
         {
-            HtmlConvertService h = new HtmlConvertService();
+            var h = new HtmlConvertService();
             return h.ConvertFromString(htmlString);
         }
 
-        public static List<string> GetAllImageSrcs(this string htmlString)
+        public static List<String> GetAllImageSrcs(this String htmlString)
         {
-            HtmlConvertService h = new HtmlConvertService();
+            var h = new HtmlConvertService();
             return h.GetAllImageSrcs(htmlString);
-
         }
     }
 }

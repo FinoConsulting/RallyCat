@@ -1,10 +1,12 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.IO;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Threading;
 using System.Windows.Forms;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WatiN.Core;
+
 
 namespace RallyCat.WebApi.Tests.WebpageToImage
 {
@@ -20,18 +22,18 @@ namespace RallyCat.WebApi.Tests.WebpageToImage
                 ie.CaptureWebPageToFile(@"c:\temp\g1.jpg");
             }
         }
-        
-        protected void Capture(object sender, EventArgs e)
+
+        protected void Capture(Object sender, EventArgs e)
         {
-            string url = "http://www.aspsnippets.com/Articles/Capture-Screenshot-Snapshot-Image-of-Website-Web-Page-in-ASPNet-using-C-and-VBNet.aspx";
-            Thread thread = new Thread(delegate()
+            const String url = "http://www.aspsnippets.com/Articles/Capture-Screenshot-Snapshot-Image-of-Website-Web-Page-in-ASPNet-using-C-and-VBNet.aspx";
+            var thread = new Thread(delegate()
             {
-                using (WebBrowser browser = new WebBrowser())
+                using (var browser = new WebBrowser())
                 {
                     browser.ScrollBarsEnabled = false;
                     browser.AllowNavigation = true;
                     browser.Navigate(url);
-                    browser.Width = 1024; 
+                    browser.Width = 1024;
                     browser.Height = 768;
                     browser.DocumentCompleted += DocumentCompleted;
                     while (browser.ReadyState != WebBrowserReadyState.Complete)
@@ -45,22 +47,22 @@ namespace RallyCat.WebApi.Tests.WebpageToImage
             thread.Join();
         }
 
-        private void DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
+        private static void DocumentCompleted(Object sender, WebBrowserDocumentCompletedEventArgs e)
         {
-            WebBrowser browser = sender as WebBrowser;
-            int w = browser.Document.Body.ScrollRectangle.Width;
-            int h = browser.Document.Body.ScrollRectangle.Height;
+            var browser = sender as WebBrowser;
+            var w = browser.Document.Body.ScrollRectangle.Width;
+            var h = browser.Document.Body.ScrollRectangle.Height;
             browser.ScriptErrorsSuppressed = true;
-            using (Bitmap bitmap = new Bitmap(w, h))
+            using (var bitmap = new Bitmap(w, h))
             {
                 browser.DrawToBitmap(bitmap, new Rectangle(0, 0, browser.Width, browser.Height));
-                using (MemoryStream stream = new MemoryStream())
+                using (var stream = new MemoryStream())
                 {
-                    bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
-                    byte[] bytes = stream.ToArray();
-                    using (FileStream sw = new FileStream(@"c:\temp\1.png",FileMode.OpenOrCreate))
+                    bitmap.Save(stream, ImageFormat.Png);
+                    var bytes = stream.ToArray();
+                    using (var sw = new FileStream(@"c:\temp\1.png", FileMode.OpenOrCreate))
                     {
-                        using (BinaryWriter bw = new BinaryWriter(sw))
+                        using (var bw = new BinaryWriter(sw))
                         {
                             bw.Write(bytes);
                         }
@@ -71,6 +73,4 @@ namespace RallyCat.WebApi.Tests.WebpageToImage
             }
         }
     }
-
-
 }
