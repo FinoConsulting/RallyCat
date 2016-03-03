@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -85,8 +87,24 @@ namespace RallyCat.WebApi.Controllers
             {
                 using (var client = new HttpClient())
                 {
-                   var responseText = new SlackResponseVM(result);
-                   var response = await client.PostAsJsonAsync(responseUrl, responseText);
+                    // var responseText = new SlackResponseVM(result);
+                    // var response = await client.PostAsJsonAsync(responseUrl, responseText);
+                    Dictionary<string, string> formattedResponse = new Dictionary<string, string>();
+                    formattedResponse.Add("text", result);
+                    var content = new FormUrlEncodedContent(formattedResponse);
+                    Uri baseUri = new Uri(responseUrl);
+                    var response = await client.PostAsync("https://hooks.slack.com/services/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", content);
+
+                    // var responseString = await response.Content.ReadAsStringAsync();
+                    //client.DefaultRequestHeaders
+                    //      .Accept
+                    //      .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                    //HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, responseUrl);
+                    //request.Content = new StringContent("{\"text\":\""+result+"\"}",
+                    //                                    Encoding.UTF8,
+                    //                                    "application/json");
+                    //await client.SendAsync(request);
                 }
                 return new SlackResponseVM("...wait for it...");
             }
