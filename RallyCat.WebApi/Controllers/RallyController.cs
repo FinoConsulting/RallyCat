@@ -50,14 +50,12 @@ namespace RallyCat.WebApi.Controllers
             var slackText = slackMessageText.Split(pattern);
             var channel = msg.ChannelName;
             var result = "";
-            if (slackText.Length > 2)
+     
+            foreach (var element in slackText)
             {
-                foreach (var element in slackText)
+                if (!(element.Contains("kanban") || element.Contains("rallycat") || regex.IsMatch(element)))
                 {
-                    if (!(element.Contains("kanban") || element.Contains("rallycat") || regex.IsMatch(element)))
-                    {
-                        channel = element;
-                    }
+                    channel = element;
                 }
             }
             if (m.Success)
