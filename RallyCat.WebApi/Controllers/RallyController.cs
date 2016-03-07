@@ -1,11 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.Entity.Core;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Security.Policy;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Http;
+using System.Web.WebPages;
 using RallyCat.Core;
 using RallyCat.Core.DataAccess;
 using RallyCat.Core.Rally;
@@ -38,10 +44,7 @@ namespace RallyCat.WebApi.Controllers
         public async Task<SlackResponseVM> Details()
         {
             var input = await Request.Content.ReadAsStringAsync();
-
-            var str = input;
-
-            var msg = SlackMessage.FromString(str);
+            var msg = SlackMessage.FromString(input);
             msg.MessageType = SlackMessageType.OutgoingWebhooks;
             var regex = new Regex(@"((US|Us|uS|us)\d{1,9})|(((dE|de|De|DE)\d{1,9}))");
             var m = regex.Match(msg.Text);
@@ -70,34 +73,67 @@ namespace RallyCat.WebApi.Controllers
                     ? GetKanban(channel)
                     : "Type [ProjectName] kanban OR [ProjectName] [US1234]/[DE1234]";
             }
+
             if (responseUrl != null)
             {
-                using (var client = new HttpClient())
-                {
-                    // var responseText = new SlackResponseVM(result);
-                    // var response = await client.PostAsJsonAsync(responseUrl, responseText);
-                    Dictionary<string, string> formattedResponse = new Dictionary<string, string>();
-                    formattedResponse.Add("text", result);
-                    var content = new FormUrlEncodedContent(formattedResponse);
-                    Uri baseUri = new Uri(responseUrl);
-                    var response = await client.PostAsync("https://hooks.slack.com/services/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", content);
 
-                    // var responseString = await response.Content.ReadAsStringAsync();
-                    //client.DefaultRequestHeaders
-                    //      .Accept
-                    //      .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                var formattedUrl = Regex.Replace(responseUrl, "%2F", "/");
+                var postUrl = Regex.Replace(formattedUrl, "%3A", ":");
+                // Uri responseUri = new Uri(responseUrl);
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(postUrl);
+                Encoding encoding = new UTF8Encoding();
+                string postData = "{\"text\":\"" + result + "\"}";
+                byte[] data = encoding.GetBytes(postData);
+                request.ProtocolVersion = HttpVersion.Version11;
+                request.Method = "POST";
+                request.ContentType = "application/json";
+                request.ContentLength = data.Length;
 
-                    //HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, responseUrl);
-                    //request.Content = new StringContent("{\"text\":\""+result+"\"}",
-                    //                                    Encoding.UTF8,
-                    //                                    "application/json");
-                    //await client.SendAsync(request);
-                }
-                return new SlackResponseVM("...wait for it...");
+                Stream stream = request.GetRequestStream();
+                stream.Write(data, 0, data.Length);
+                stream.Close();
+             
+
             }
             return new SlackResponseVM(result);
         }
 
+        //[Route("api/Rally/SlashCommand")]
+        //[HttpPost]
+        //public async Task<SlackResponseVM> SlashCommand()
+        //{
+        //    var input = await Request.Content.ReadAsStringAsync();
+        //    var msg = SlackMessage.FromString(input);
+        //    msg.MessageType = SlackMessageType.OutgoingWebhooks;
+        //    var regex = new Regex(@"((US|Us|uS|us)\d{1,9})|(((dE|de|De|DE)\d{1,9}))");
+        //    var m = regex.Match(msg.Text);
+        //    var formattedId = m.Groups[0].Value;
+        //    var slackMessageText = msg.Text.ToLower();
+        //    var pattern = '+';
+        //    var slackText = slackMessageText.Split(pattern);
+        //    var result = "";
+        //    var channel = "";
+        //    var responseUrl = msg.ResponseUrl;
+        //    foreach (var element in slackText)
+        //    {
+        //        if (!(element.Contains("kanban") || regex.IsMatch(element)))
+        //        {
+        //             channel = element;
+        //        }
+        //    }
+        //    if (m.Success)
+        //    {
+        //        result = GetItem(formattedId, channel);
+        //    }
+        //    else
+        //    {
+        //        result = slackMessageText.Contains("kanban")
+        //            ? GetKanban(channel)
+        //            : "Type [ProjectName] kanban OR [ProjectName] [US1234]/[DE1234]";
+        //    }
+
+        //    return new SlackResponseVM(result);
+        //}
         [Route("api/Rally/Kanban/{channelName}")]
         public string GetKanban(string channelName)
         {
