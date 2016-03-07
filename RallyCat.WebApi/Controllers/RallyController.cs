@@ -81,7 +81,6 @@ namespace RallyCat.WebApi.Controllers
 
             if (responseUrl != null)
             {
-
                 var formattedUrl = Regex.Replace(responseUrl, "%2F", "/");
                 var postUrl = Regex.Replace(formattedUrl, "%3A", ":");
 
@@ -98,6 +97,7 @@ namespace RallyCat.WebApi.Controllers
                 Stream stream = request.GetRequestStream();
                 stream.Write(data, 0, data.Length);
                 stream.Close();
+                return new SlackResponseVM("Meeeooowww");
             }
             return new SlackResponseVM(result);
         }
@@ -179,7 +179,7 @@ namespace RallyCat.WebApi.Controllers
 
         private static string GetHelpMsg()
         {
-            return "---Available Commands---\r\n\r\nFrom any channel (private and public): \r\n\r\n/rallycat [project name] kanban\r\n /rallycat[project name] us#### \r\n /rallycat [project name] de#### \r\n\r\n From any public channel: \r\n\r\nrallycat: [project name] kanban\r\n rallycat: [project name] us####\r\n rallycat: [project name] de#### \r\n\r\nFrom specific project channel:\r\n rallycat: kanban \r\nrallycat: us####\r\nrallycat: de####\r\n\r\n";
+            return "---Available Commands---\r\n\r\n--From any channel (private and public): \r\n\r\n/rallycat [project name] kanban\r\n /rallycat[project name] us#### \r\n /rallycat [project name] de#### \r\n\r\n --From any public channel: \r\n\r\nrallycat: [project name] kanban\r\n rallycat: [project name] us####\r\n rallycat: [project name] de#### \r\n\r\n--From specific project channel:\r\n rallycat: kanban \r\nrallycat: us####\r\nrallycat: de####\r\n\r\n";
         }
     }
 
