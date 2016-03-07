@@ -71,7 +71,7 @@ namespace RallyCat.WebApi.Controllers
             {
                 result = slackMessageText.Contains("kanban")
                     ? GetKanban(channel)
-                    : "Type [ProjectName] kanban OR [ProjectName] [US1234]/[DE1234]";
+                    : "Please specify name of project.\r\n\r\nEx)\r\n\r\n acdc kanban";
             }
 
             if (responseUrl != null)
@@ -79,61 +79,36 @@ namespace RallyCat.WebApi.Controllers
 
                 var formattedUrl = Regex.Replace(responseUrl, "%2F", "/");
                 var postUrl = Regex.Replace(formattedUrl, "%3A", ":");
-                // Uri responseUri = new Uri(responseUrl);
+
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(postUrl);
                 Encoding encoding = new UTF8Encoding();
                 string postData = "{\"text\":\"" + result + "\"}";
                 byte[] data = encoding.GetBytes(postData);
+
                 request.ProtocolVersion = HttpVersion.Version11;
                 request.Method = "POST";
                 request.ContentType = "application/json";
                 request.ContentLength = data.Length;
 
                 Stream stream = request.GetRequestStream();
+
+
                 stream.Write(data, 0, data.Length);
                 stream.Close();
-             
+
+
+                //using (var client = new HttpClient())
+                //{
+                //    Dictionary<string, string> formattedResponse = new Dictionary<string, string>();
+                //    formattedResponse.Add("text", result);
+                //    var content = new FormUrlEncodedContent(formattedResponse);
+                //    var response = await client.PostAsJsonAsync(postUrl, content);
+                //}
 
             }
             return new SlackResponseVM(result);
         }
 
-        //[Route("api/Rally/SlashCommand")]
-        //[HttpPost]
-        //public async Task<SlackResponseVM> SlashCommand()
-        //{
-        //    var input = await Request.Content.ReadAsStringAsync();
-        //    var msg = SlackMessage.FromString(input);
-        //    msg.MessageType = SlackMessageType.OutgoingWebhooks;
-        //    var regex = new Regex(@"((US|Us|uS|us)\d{1,9})|(((dE|de|De|DE)\d{1,9}))");
-        //    var m = regex.Match(msg.Text);
-        //    var formattedId = m.Groups[0].Value;
-        //    var slackMessageText = msg.Text.ToLower();
-        //    var pattern = '+';
-        //    var slackText = slackMessageText.Split(pattern);
-        //    var result = "";
-        //    var channel = "";
-        //    var responseUrl = msg.ResponseUrl;
-        //    foreach (var element in slackText)
-        //    {
-        //        if (!(element.Contains("kanban") || regex.IsMatch(element)))
-        //        {
-        //             channel = element;
-        //        }
-        //    }
-        //    if (m.Success)
-        //    {
-        //        result = GetItem(formattedId, channel);
-        //    }
-        //    else
-        //    {
-        //        result = slackMessageText.Contains("kanban")
-        //            ? GetKanban(channel)
-        //            : "Type [ProjectName] kanban OR [ProjectName] [US1234]/[DE1234]";
-        //    }
-
-        //    return new SlackResponseVM(result);
-        //}
         [Route("api/Rally/Kanban/{channelName}")]
         public string GetKanban(string channelName)
         {
@@ -141,7 +116,8 @@ namespace RallyCat.WebApi.Controllers
             var map = mappings.Find(o => o.Channels.Contains(channelName.ToLower()));
             if (map == null)
             {
-                throw new ObjectNotFoundException("Cannot found channel name mapping for " + channelName);
+                return GetHelpMsg();
+                // throw new ObjectNotFoundException("Cannot found channel name mapping for " + channelName);
             }
 
             var result = _rallyService.GetKanban(map);
@@ -206,6 +182,11 @@ namespace RallyCat.WebApi.Controllers
             };
             var r = new Random((int) DateTime.Now.Ticks);
             return welcomes[r.Next(0, welcomes.Count - 1)];
+        }
+
+        private static string GetHelpMsg()
+        {
+            return "---Available Commands---\r\n\r\nFrom any channel (private and public): \r\n\r\n/rallycat [project name] kanban\r\n /rallycat[project name] us#### \r\n /rallycat [project name] de#### \r\n\r\n From any public channel: \r\n\r\nrallycat: [project name] kanban\r\n rallycat: [project name] us####\r\n rallycat: [project name] de#### \r\n\r\nFrom specific project channel:\r\n rallycat: kanban \r\nrallycat: us####\r\nrallycat: de####\r\n\r\n";
         }
     }
 
