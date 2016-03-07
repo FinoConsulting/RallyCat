@@ -50,12 +50,19 @@ namespace RallyCat.WebApi.Controllers
             var m = regex.Match(msg.Text);
             var formattedId = m.Groups[0].Value;
             var slackMessageText = msg.Text.ToLower();
+
+            if (slackMessageText.Contains("help"))
+            {
+                return new SlackResponseVM(GetHelpMsg());
+            }
+
             var pattern = '+';
             var slackText = slackMessageText.Split(pattern);
             var channel = msg.ChannelName;
-            var result = "";
+            var result = GetHelpMsg();
             var responseUrl = msg.ResponseUrl;
-     
+            
+           
             foreach (var element in slackText)
             {
                 if (!(element.Contains("kanban") || element.Contains("rallycat") || regex.IsMatch(element)))
@@ -67,11 +74,9 @@ namespace RallyCat.WebApi.Controllers
             {
                 result = GetItem(formattedId, channel);
             }
-            else
+            if (slackMessageText.Contains("kanban"))
             {
-                result = slackMessageText.Contains("kanban")
-                    ? GetKanban(channel)
-                    : "Please specify name of project.\r\n\r\nEx)\r\n\r\n acdc kanban";
+                result = GetKanban(channel);
             }
 
             if (responseUrl != null)
@@ -91,20 +96,8 @@ namespace RallyCat.WebApi.Controllers
                 request.ContentLength = data.Length;
 
                 Stream stream = request.GetRequestStream();
-
-
                 stream.Write(data, 0, data.Length);
                 stream.Close();
-
-
-                //using (var client = new HttpClient())
-                //{
-                //    Dictionary<string, string> formattedResponse = new Dictionary<string, string>();
-                //    formattedResponse.Add("text", result);
-                //    var content = new FormUrlEncodedContent(formattedResponse);
-                //    var response = await client.PostAsJsonAsync(postUrl, content);
-                //}
-
             }
             return new SlackResponseVM(result);
         }
