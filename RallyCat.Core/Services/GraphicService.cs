@@ -11,6 +11,7 @@ namespace RallyCat.Core.Services
         public Rectangle GetKanbanItemSize(Point startPoint, int recWidth, int headerHeight, int textMargin,
             KanbanItem item)
         {
+            
             Image img = new Bitmap(1, 1);
             using (var g = Graphics.FromImage(img))
             {
@@ -85,6 +86,7 @@ namespace RallyCat.Core.Services
             int stackItemMargin,
             int textMargin, string category, int categoryHeight, List<KanbanItem> items)
         {
+          
             var next = startPoint;
             next.X += stackItemMargin;
             next.Y += stackItemMargin;
@@ -95,7 +97,10 @@ namespace RallyCat.Core.Services
             g.DrawString(category, font, brush, new RectangleF(next.X, next.Y, rectWidth, categoryHeight), sf);
 
             next.Y += categoryHeight;
-
+            if (items == null)
+            {
+                return new Rectangle(startPoint, new Size(stackItemMargin + rectWidth + stackItemMargin, next.Y));
+            }
             foreach (var item in items)
             {
                 var rec = DrawOneKanbanItem(g, next, rectWidth, headerHeight, textMargin, item);
@@ -107,11 +112,16 @@ namespace RallyCat.Core.Services
         public Rectangle GetOneKanbanColumnSize(Point startPoint, int rectWidth, int headerHeight, int stackItemMargin,
             int textMargin, int categoryHeight, List<KanbanItem> items)
         {
+         
             var next = startPoint;
             next.X += stackItemMargin;
             next.Y += categoryHeight;
             next.Y += stackItemMargin;
             var lastHeight = 0;
+            if (items == null)
+            {
+                return new Rectangle(startPoint, new Size(stackItemMargin + rectWidth + stackItemMargin, next.Y));
+            }
             foreach (var item in items)
             {
                 var rec = GetKanbanItemSize(next, rectWidth, headerHeight, textMargin, item);
@@ -125,6 +135,11 @@ namespace RallyCat.Core.Services
         public Rectangle DrawOneKanbanItem(Graphics g, Point startPoint, int recWidth, int headerHeight, int textMargin,
             KanbanItem item)
         {
+
+            if (item == null)
+            {
+                return new Rectangle(new Point(0,0), new Size(0,0));
+            }
             float currentHeight = 0;
 
             var halfMargin = textMargin/2;
