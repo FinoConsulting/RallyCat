@@ -71,6 +71,7 @@ namespace RallyCat.WebApi.Controllers
 
             if (responseUrl != null)
             {
+                // temporary auto-response 
                 var formattedUrl = Regex.Replace(responseUrl, "%2F", "/");
                 var postUrl = Regex.Replace(formattedUrl, "%3A", ":");
 
@@ -116,6 +117,7 @@ namespace RallyCat.WebApi.Controllers
 
                 string postData = "{\"text\":\"" + result + "\"}";
 
+
                 var data = Encoding.ASCII.GetBytes(postData);
 
                 request.ProtocolVersion = HttpVersion.Version11;
@@ -153,8 +155,7 @@ namespace RallyCat.WebApi.Controllers
             var map = mappings.Find(o => o.Channels.Contains(channelName.ToLower()));
             if (map == null)
             {
-                return GetHelpMsg();
-                // throw new ObjectNotFoundException("Cannot found channel name mapping for " + channelName);
+                return "Cannot found channel name mapping for " + channelName;
             }
 
             var result = _rallyService.GetKanban(map);
@@ -171,25 +172,15 @@ namespace RallyCat.WebApi.Controllers
             //    "ScheduleState",
             //    "Owner"
             //};
-            var kanbanGroup = new Dictionary<string, List<KanbanItem>>();
             var kanbanItems = result.Select(o => KanbanItem.ConvertFrom(o, map.KanbanSortColumn)).Cast<KanbanItem>();
             var kanbanColumns = _rallyService.GetOrderedColumns(map);
             foreach (var item in kanbanItems.GroupBy(k => k.KanbanState))
             {
-
                 if (kanbanColumns.ContainsKey(item.Key))
                 {
                     kanbanColumns[item.Key] = item.OrderBy(t => t.AssignedTo).ToList();
                 }
-               // kanbanGroup.Add(item.Key, item.OrderBy(t => t.AssignedTo).ToList());
             }
-
-            //foreach( KeyValuePair<string,List<KanbanItem>> keyValuePair in kanbanColumns)
-            //if (keyValuePair.Value == null)
-            //{
-            //    kanbanColumns.Remove(keyValuePair.Key);
-            //}
-            //var img = _graphicService.DrawWholeKanban(500, 20, 20, 20, 100, kanbanGroup);
             var img = _graphicService.DrawWholeKanban(500, 20, 20, 20, 100, kanbanColumns);
             return _azureService.Upload(img, string.Format("{0}-kanban", channelName));
         }
