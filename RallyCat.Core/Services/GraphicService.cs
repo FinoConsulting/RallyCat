@@ -145,7 +145,9 @@ namespace RallyCat.Core.Services
             var halfMargin = textMargin/2;
 
             //Header, solid rectangle
-            Brush headerBrush = new SolidBrush(Color.DarkOrange);
+            string htmlColor = item.DisplayColor;
+            Color itemHeaderColor= ColorTranslator.FromHtml(htmlColor);
+            Brush headerBrush = new SolidBrush(itemHeaderColor);
             var headerRec = new Rectangle(new Point(startPoint.X, startPoint.Y), new Size(recWidth + 1, headerHeight));
 
             var font = new Font("Segoe UI", 20, FontStyle.Regular);
