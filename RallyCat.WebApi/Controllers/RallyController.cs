@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.WebPages;
@@ -39,30 +40,58 @@ namespace RallyCat.WebApi.Controllers
             _azureService = new AzureService(RallyBackgroundData.Instance);
         }
 
+        //[Route("api/Rally/DetailsByCommand")]
+        //[HttpGet]
+        //public async Task<SlackResponseVM> DetailsByCommand()
+        //{
+        //    var input = await Request.Content.ReadAsStringAsync();
+        //    var msg = SlackMessage.FromString(input);
+        //    return new SlackResponseVM(input);
+        //}
+
         [Route("api/Rally/Details")]
         [HttpPost]
         public async Task<SlackResponseVM> Details()
         {
-            var input = await Request.Content.ReadAsStringAsync();
-            var msg = SlackMessage.FromString(input);
-            msg.MessageType = SlackMessageType.OutgoingWebhooks;
-            var regex = new Regex(@"((US|Us|uS|us)\d{1,9})|(((dE|de|De|DE)\d{1,9}))");
-            var m = regex.Match(msg.Text);
-            var formattedId = m.Groups[0].Value;
-            var slackMessageText = msg.Text.ToLower();
+            var input               = await Request.Content.ReadAsStringAsync();
+            var msg                 = SlackMessage.FromString(input);
+            msg.MessageType         = SlackMessageType.OutgoingWebhooks;
+            var regex               = new Regex(@"((US|Us|uS|us)\d{1,9})|(((dE|de|De|DE)\d{1,9}))");
+            var m                   = regex.Match(msg.Text);
+            var formattedId         = m.Groups[0].Value;
+            var slackMessageText    = msg.Text.ToLower();
 
-            if (slackMessageText.Contains("help"))
+            if (slackMessageText.Contains("help")) { return new SlackResponseVM(GetHelpMsg()); }
+
+            var pattern             = '+';
+            var slackText           = slackMessageText.Split(pattern);
+            var channel             = msg.ChannelName;
+            var result              = GetHelpMsg();
+            var responseUrl         = msg.ResponseUrl;
+
+            if (responseUrl != null)
             {
-                return new SlackResponseVM(GetHelpMsg());
+                var formattedUrl = Regex.Replace(responseUrl, "%2F", "/");
+                var postUrl = Regex.Replace(formattedUrl, "%3A", ":");
+
+                HttpWebRequest autoRequest = (HttpWebRequest)WebRequest.Create(postUrl);
+                Encoding encoding1 = new UTF8Encoding();
+
+                string autoResponse = "{\"text\":\"Meow.... your data is on its way!\"}";
+                byte[] autoResponseData = encoding1.GetBytes(autoResponse);
+
+                autoRequest.ProtocolVersion = HttpVersion.Version11;
+                autoRequest.Method = "POST";
+                autoRequest.ContentType = "application/json";
+                autoRequest.ContentLength = autoResponseData.Length;
+
+                Stream tempStream = autoRequest.GetRequestStream();
+
+                tempStream.Write(autoResponseData, 0, autoResponseData.Length);
+
+                tempStream.Close();
             }
 
-            var pattern = '+';
-            var slackText = slackMessageText.Split(pattern);
-            var channel = msg.ChannelName;
-            var result = GetHelpMsg();
-            var responseUrl = msg.ResponseUrl;
-            
-           
             foreach (var element in slackText)
             {
                 if (!(element.Contains("kanban") || element.Contains("rallycat") || regex.IsMatch(element)))
@@ -78,16 +107,16 @@ namespace RallyCat.WebApi.Controllers
             {
                 result = GetKanban(channel);
             }
-
+     
             if (responseUrl != null)
             {
                 var formattedUrl = Regex.Replace(responseUrl, "%2F", "/");
                 var postUrl = Regex.Replace(formattedUrl, "%3A", ":");
-
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(postUrl);
-                Encoding encoding = new UTF8Encoding();
+
                 string postData = "{\"text\":\"" + result + "\"}";
-                byte[] data = encoding.GetBytes(postData);
+
+                var data = Encoding.ASCII.GetBytes(postData);
 
                 request.ProtocolVersion = HttpVersion.Version11;
                 request.Method = "POST";
@@ -95,12 +124,27 @@ namespace RallyCat.WebApi.Controllers
                 request.ContentLength = data.Length;
 
                 Stream stream = request.GetRequestStream();
+
                 stream.Write(data, 0, data.Length);
+
                 stream.Close();
-                return new SlackResponseVM("Meeeooowww");
+
+                //return new SlackResponseVM(result);
+                //using (var client = new HttpClient())
+                //{
+                //    var values = new SlackResponseVM(result);
+                //    var content = new FormUrlEncodedContent(values);
+                //    var response = await client.PostAsync(postUrl, content);
+                //    var responseString = await response.Content.ReadAsStringAsync();
+                //}
+
+                return new SlackResponseVM("meow mix meow mix I want meow mix");
             }
             return new SlackResponseVM(result);
         }
+
+
+   
 
         [Route("api/Rally/Kanban/{channelName}")]
         public string GetKanban(string channelName)
@@ -129,13 +173,24 @@ namespace RallyCat.WebApi.Controllers
             //};
             var kanbanGroup = new Dictionary<string, List<KanbanItem>>();
             var kanbanItems = result.Select(o => KanbanItem.ConvertFrom(o, map.KanbanSortColumn)).Cast<KanbanItem>();
-
+            var kanbanColumns = _rallyService.GetOrderedColumns(map);
             foreach (var item in kanbanItems.GroupBy(k => k.KanbanState))
             {
-                kanbanGroup.Add(item.Key, item.OrderBy(t => t.AssignedTo).ToList());
+
+                if (kanbanColumns.ContainsKey(item.Key))
+                {
+                    kanbanColumns[item.Key] = item.OrderBy(t => t.AssignedTo).ToList();
+                }
+               // kanbanGroup.Add(item.Key, item.OrderBy(t => t.AssignedTo).ToList());
             }
 
-            var img = _graphicService.DrawWholeKanban(500, 20, 20, 20, 100, kanbanGroup);
+            //foreach( KeyValuePair<string,List<KanbanItem>> keyValuePair in kanbanColumns)
+            //if (keyValuePair.Value == null)
+            //{
+            //    kanbanColumns.Remove(keyValuePair.Key);
+            //}
+            //var img = _graphicService.DrawWholeKanban(500, 20, 20, 20, 100, kanbanGroup);
+            var img = _graphicService.DrawWholeKanban(500, 20, 20, 20, 100, kanbanColumns);
             return _azureService.Upload(img, string.Format("{0}-kanban", channelName));
         }
 
@@ -179,7 +234,26 @@ namespace RallyCat.WebApi.Controllers
 
         private static string GetHelpMsg()
         {
-            return "---Available Commands---\r\n\r\n--From any channel (private and public): \r\n\r\n/rallycat [project name] kanban\r\n /rallycat[project name] us#### \r\n /rallycat [project name] de#### \r\n\r\n --From any public channel: \r\n\r\nrallycat: [project name] kanban\r\n rallycat: [project name] us####\r\n rallycat: [project name] de#### \r\n\r\n--From specific project channel:\r\n rallycat: kanban \r\nrallycat: us####\r\nrallycat: de####\r\n\r\n";
+            return @"---Available Commands---
+
+--From any channel (private and public): 
+
+/rallycat [project name] kanban
+ /rallycat[project name] us#### 
+ /rallycat [project name] de#### 
+
+ --From any public channel: 
+
+rallycat: [project name] kanban
+ rallycat: [project name] us####
+ rallycat: [project name] de#### 
+
+--From specific project channel:
+ rallycat: kanban 
+rallycat: us####
+rallycat: de####
+
+";
         }
     }
 
