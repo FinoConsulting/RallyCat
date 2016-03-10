@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Security.Authentication;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using FluentData;
@@ -62,8 +64,43 @@ namespace RallyCat.Core.Services
             //request.Fetch = new List<string>() { "Name", "Description", "FormattedID" };
             request.Fetch = requestFields;
             request.Query = query;
+            // request.Order = map.KanbanSortColumn;
             QueryResult queryResult = api.Query(request);
             return queryResult;
+        }
+
+        public Dictionary<string, List<KanbanItem>> GetOrderedColumns(RallySlackMapping map)
+        {
+            var api = _pool.GetApi(_rallyToken, _rallyUrl);
+            if (api == null)
+            {
+                throw new AuthenticationException("Cannot verify rally login");
+            }
+            var queryType = "AttributeDefinition/46444394085/AllowedValues";
+            var requestField = new List<string>() { "StringValue", "ValueIndex" };
+            Request request = new Request(queryType);
+ 
+            request.Fetch = requestField;
+            QueryResult queryResult = api.Query(request);
+
+
+            if (queryResult.Results.Any())
+            {
+                var kanbanColumns = new Dictionary<string, List<KanbanItem>>();
+                foreach (var item in queryResult.Results)
+                {
+                    var columnName = item["StringValue"];
+                    if (item["StringValue"] == "")
+                    {
+                        columnName = "None";
+                    }
+                    kanbanColumns.Add(columnName, null);
+
+
+                }
+                return kanbanColumns;
+            }
+            return null;
         }
 
         public List<dynamic> GetKanban(RallySlackMapping map)
@@ -101,6 +138,7 @@ namespace RallyCat.Core.Services
             query = new Query("Iteration.Name", Query.Operator.Equals, iterationName);
             requestFields = new List<string>()
             {
+                map.KanbanSortColumn,
                 "Name",
                 "ObjectID",
                 "FormattedID",
@@ -109,7 +147,8 @@ namespace RallyCat.Core.Services
                 "BlockedReason",
                 "Owner"
             };
-            requestFields.Add(map.KanbanSortColumn);
+            // requestFields.Add(map.KanbanSortColumn);
+
             var result0 = GetRallyItemByQuery( map, requestFields, query, queryType);
 
             //Defects
