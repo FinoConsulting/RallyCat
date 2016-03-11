@@ -115,6 +115,8 @@ namespace RallyCat.WebApi.Controllers
                 var postUrl = Regex.Replace(formattedUrl, "%3A", ":");
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(postUrl);
 
+                result = result.Replace("\"", "\\\"");
+                
                 string postData = "{\"text\":\"" + result + "\"}";
 
 
