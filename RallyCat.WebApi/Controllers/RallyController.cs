@@ -40,15 +40,6 @@ namespace RallyCat.WebApi.Controllers
             _azureService = new AzureService(RallyBackgroundData.Instance);
         }
 
-        //[Route("api/Rally/DetailsByCommand")]
-        //[HttpGet]
-        //public async Task<SlackResponseVM> DetailsByCommand()
-        //{
-        //    var input = await Request.Content.ReadAsStringAsync();
-        //    var msg = SlackMessage.FromString(input);
-        //    return new SlackResponseVM(input);
-        //}
-
         [Route("api/Rally/Details")]
         [HttpPost]
         public async Task<SlackResponseVM> Details()
@@ -131,20 +122,8 @@ namespace RallyCat.WebApi.Controllers
                 request.ContentLength = data.Length;
 
                 Stream stream = request.GetRequestStream();
-
                 stream.Write(data, 0, data.Length);
-
                 stream.Close();
-
-                //return new SlackResponseVM(result);
-                //using (var client = new HttpClient())
-                //{
-                //    var values = new SlackResponseVM(result);
-                //    var content = new FormUrlEncodedContent(values);
-                //    var response = await client.PostAsync(postUrl, content);
-                //    var responseString = await response.Content.ReadAsStringAsync();
-                //}
-
                 return new SlackResponseVM("meow mix meow mix I want meow mix");
             }
             return new SlackResponseVM(result);
