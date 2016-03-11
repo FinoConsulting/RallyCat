@@ -9,21 +9,20 @@ namespace RallyCat.Core.DataAccess
 {
     public class RallySlackMappingRepository : IRallySlackMappingRepository
     {
-        public IDbContext DbContext;
+        private readonly IDbContext _DbContext;
 
         public RallySlackMappingRepository(IDbContext dbContext)
         {
-            DbContext = dbContext;
+            _DbContext = dbContext;
         }
 
         public Result<List<RallySlackMapping>> GetAll()
         {
             var result = new Result<List<RallySlackMapping>>();
-            using (var context = DbContext)
+            using (var context = _DbContext)
             {
                 var query = @"select * from RallyConfigurations";
-                var item =
-                    context.Sql(query).QueryMany((RallySlackMapping o, IDataReader r) =>
+                var item = context.Sql(query).QueryMany((RallySlackMapping o, IDataReader r) =>
                     {
                         o.Id               =  (Int32)   r["Id"              ];
                         o.TeamName         =  (String)  r["TeamName"        ];
@@ -34,14 +33,8 @@ namespace RallyCat.Core.DataAccess
                         o.Channels         = ((String)  r["Channels"        ]).Split(',').ToList();
                     });
 
-                if (item == null)
-                {
-                    result.Success = false;
-                    result.Object  = null;
-                    return result;
-                }
                 result.Object  = item;
-                result.Success = true;
+                result.Success = item != null;
             }
 
             return result;

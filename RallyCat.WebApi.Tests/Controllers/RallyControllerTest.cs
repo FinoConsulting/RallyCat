@@ -1,8 +1,6 @@
-﻿using System;
-using System.Drawing;
-using System.Drawing.Imaging;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RallyCat.WebApi.Controllers;
+
 
 namespace RallyCat.WebApi.Tests.Controllers
 {
@@ -12,7 +10,7 @@ namespace RallyCat.WebApi.Tests.Controllers
         [TestMethod]
         public void GetRallyItemTest()
         {
-            RallyController c =new RallyController();
+            var c    = new RallyController();
             var item = c.GetItem("DE1877", "de-support");
             Assert.IsNotNull(item);
         }

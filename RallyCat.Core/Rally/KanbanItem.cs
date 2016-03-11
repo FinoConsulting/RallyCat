@@ -8,12 +8,12 @@ namespace RallyCat.Core.Rally
 {
     public class KanbanItem
     {
-        public String  FormattedId      { get; set; }
         public String  AssignedTo       { get; set; }
-        public String  StoryDescription { get; set; }
-        public Boolean IsBlocked        { get; set; }
         public String  BlockedReason    { get; set; }
+        public String  FormattedId      { get; set; }
+        public Boolean IsBlocked        { get; set; }
         public String  KanbanState      { get; set; }
+        public String  StoryDescription { get; set; }
 
         public KanbanItem(String kanbanState, String formattedId, String assignedTo, String storyDescription)
         {
@@ -22,7 +22,6 @@ namespace RallyCat.Core.Rally
             AssignedTo       = assignedTo;
             StoryDescription = storyDescription;
             IsBlocked        = false;
-            
         }
 
         public KanbanItem(String kanbanState, String formattedId, String assignedTo, String storyDescription, String blockedReason)
@@ -50,10 +49,7 @@ namespace RallyCat.Core.Rally
             {
                 return new KanbanItem(s[kanbanStateKeyWord] ?? "None", formattedId, s["Owner"] == null ? "(None)" : s["Owner"]["_refObjectName"], s["Name"], s["BlockedReason"]);
             }
-            else
-            {
-                return new KanbanItem(s[kanbanStateKeyWord] ?? "None", formattedId, s["Owner"] == null ? "(None)" : s["Owner"]["_refObjectName"], s["Name"]);
-            }
+            return new KanbanItem(s[kanbanStateKeyWord] ?? "None", formattedId, s["Owner"] == null ? "(None)" : s["Owner"]["_refObjectName"], s["Name"]);
         }
     }
 }

@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using RallyCat.Core.Configuration;
+﻿using RallyCat.Core.Configuration;
 using RallyCat.Core.DataAccess;
+
 
 namespace RallyCat.Core.Interfaces
 {
@@ -8,6 +8,4 @@ namespace RallyCat.Core.Interfaces
     {
         Result<RallyGlobalConfiguration> GetItem();
     }
-
-
 }

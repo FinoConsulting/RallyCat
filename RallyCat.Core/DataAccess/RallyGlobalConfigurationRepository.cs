@@ -1,35 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentData;
+﻿using FluentData;
 using RallyCat.Core.Configuration;
 using RallyCat.Core.Interfaces;
+
 
 namespace RallyCat.Core.DataAccess
 {
     public class RallyGlobalConfigurationRepository : IRallyGlobalConfigurationRepository
     {
-        public IDbContext _dbContext;
+        private readonly IDbContext _DbContext;
+
         public RallyGlobalConfigurationRepository(IDbContext dbContext)
         {
-            _dbContext = dbContext;
+            _DbContext = dbContext;
         }
+
         public Result<RallyGlobalConfiguration> GetItem()
         {
-            Result<RallyGlobalConfiguration> result = new Result<RallyGlobalConfiguration>();
-            using (var context = _dbContext)
+            var result = new Result<RallyGlobalConfiguration>();
+            using (var context = _DbContext)
             {
-                var item = context.Sql(@"GlobalVariables_FetchAll_AsPivot").CommandType(DbCommandTypes.StoredProcedure).QuerySingle<RallyGlobalConfiguration>();
-                if (item == null)
-                {
-                    result.Success = false;
-                    result.Object = null;
-                    return result;
-                }
-                result.Object = item;
-                result.Success = true;
+                var item = context.Sql(@"GlobalVariables_FetchAll_AsPivot")
+                    .CommandType(DbCommandTypes.StoredProcedure)
+                    .QuerySingle<RallyGlobalConfiguration>();
+
+                result.Object  = item;
+                result.Success = item != null;
             }
             return result;
         }

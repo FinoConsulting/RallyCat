@@ -70,9 +70,9 @@ namespace RallyCat.Core.Services
             var iter = queryResult.Results.Select(result =>
                 new
                 {
-                    Name               = result["Name"],
-                    StartDate          = result["StartDate"] == null ? DateTime.MinValue : DateTime.Parse(result["StartDate"]),
-                    EndDate            = result["EndDate"]   == null ? DateTime.MaxValue : DateTime.Parse(result["EndDate"])
+                    Name      = result["Name"],
+                    StartDate = result["StartDate"] == null ? DateTime.MinValue : DateTime.Parse(result["StartDate"]),
+                    EndDate   = result["EndDate"]   == null ? DateTime.MaxValue : DateTime.Parse(result["EndDate"])
                 }).OrderByDescending(p => p.StartDate).First();
 
             //User stories

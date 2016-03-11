@@ -12,7 +12,7 @@ namespace RallyCat.Core.Services
     {
         private const String c_RallyHostUrl = @"https://rally1.rallydev.com";
 
-        private Int32 _TLevel;
+        private Int32   _TLevel;
         private Boolean _BTag;
 
         public String ConvertFromString(String str)
@@ -54,19 +54,13 @@ namespace RallyCat.Core.Services
                 case HtmlNodeType.Text:
                     // script and style must not be output
                     var parentName = node.ParentNode.Name;
-                    if ((parentName == "script") || (parentName == "style"))
-                    {
-                        break;
-                    }
+                    if ((parentName == "script") || (parentName == "style")) { break; }
 
                     // get text
                     var html = ((HtmlTextNode)node).Text;
 
                     // is it in fact a special closing node output as text?
-                    if (HtmlNode.IsOverlappedClosingElement(html))
-                    {
-                        break;
-                    }
+                    if (HtmlNode.IsOverlappedClosingElement(html)) { break; }
 
                     // check the text is meaningful and not a bunch of whitespaces
                     if (html.Trim().Length > 0)
@@ -109,7 +103,6 @@ namespace RallyCat.Core.Services
                             break;
                         case "li":
                             // treat paragraphs as crlf
-
                             var ts = String.Join("", Enumerable.Repeat("\t", _TLevel));
                             outText.Write("\r\n");
                             outText.Write(">");

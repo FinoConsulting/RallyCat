@@ -2,7 +2,6 @@
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 
@@ -37,8 +36,9 @@ namespace RallyCat.Core.Services
             {
                 img.Save(stream, ImageFormat.Png);
                 var buffer = stream.GetBuffer();
-                cbb.UploadFromByteArray(buffer, 0, buffer.Count());
+                cbb.UploadFromByteArray(buffer, 0, buffer.Length);
             }
+
             return cbb.Uri.AbsoluteUri;
         }
     }

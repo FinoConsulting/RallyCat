@@ -10,7 +10,7 @@ namespace RallyCat.Core.Tests
     public class RepositoryTest
     {
         private const String c_Conn = "RallyCatConnection";
-        private IDbContext _Context;
+        private IDbContext   _Context;
 
         [TestInitialize]
         public void Init()
@@ -22,8 +22,9 @@ namespace RallyCat.Core.Tests
         [TestMethod]
         public void RallyGlobalConfigurationRepositoryLoadTest()
         {
-            var repo = new RallyGlobalConfigurationRepository(_Context);
+            var repo   = new RallyGlobalConfigurationRepository(_Context);
             var result = repo.GetItem();
+
             Assert.IsNotNull(result);
             Assert.IsTrue(result.Success);
         }
@@ -31,8 +32,9 @@ namespace RallyCat.Core.Tests
         [TestMethod]
         public void RallySlackMappingRepositoryLoadTest()
         {
-            var repo = new RallySlackMappingRepository(_Context);
+            var repo   = new RallySlackMappingRepository(_Context);
             var result = repo.GetAll();
+
             Assert.IsNotNull(result);
             Assert.IsTrue(result.Success);
             Assert.IsTrue(result.Object.Count > 0);

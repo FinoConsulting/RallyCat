@@ -14,6 +14,7 @@ namespace RallyCat.Core.Rally
         {
             var api        = new RallyApi.RallyRestApi();
             var authStatus = api.AuthenticateWithApiKey(apiKey, rallyServer);
+
             return authStatus == RallyApi.RallyRestApi.AuthenticationResult.Authenticated ? api : null;
         }
     }

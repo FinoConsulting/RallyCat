@@ -2,6 +2,7 @@
 using RallyCat.Core.DataAccess;
 using RallyCat.Core.Rally;
 
+
 namespace RallyCat.Core.Interfaces
 {
     public interface IRallySlackMappingRepository

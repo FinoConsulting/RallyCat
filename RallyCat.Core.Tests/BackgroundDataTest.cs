@@ -11,7 +11,7 @@ namespace RallyCat.Core.Tests
     public class BackgroundDataTest
     {
         private const String c_Conn = "RallyCatConnection";
-        private IDbContext _Context;
+        private IDbContext   _Context;
 
         [TestInitialize]
         public void Init()
@@ -26,6 +26,7 @@ namespace RallyCat.Core.Tests
             RallyBackgroundDataService.SetDbContext(_Context);
             var globalSetting = RallyBackgroundDataService.Instance.RallyGlobalConfiguration;
             var mappings      = RallyBackgroundDataService.Instance.RallySlackMappings;
+
             Assert.IsNotNull(globalSetting);
             Assert.IsTrue(mappings.Count > 1);
         }

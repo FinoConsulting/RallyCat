@@ -46,7 +46,8 @@ namespace RallyCat.WebApi.Controllers
             var channel          = msg.ChannelName;
 
             // todo: this belongs somewhere else, maybe as a constant in a RallyHelper.cs?
-            var regex = new Regex(@"((US|Us|uS|us)\d{1,9})|(((dE|de|De|DE)\d{1,9}))");
+            var detailRegex = @"((US|Us|uS|us)\d{1,9})|(((dE|de|De|DE)\d{1,9}))";
+            var regex = new Regex(detailRegex);
 
             if (slackText.Length > 2)
             {
@@ -59,8 +60,8 @@ namespace RallyCat.WebApi.Controllers
             }
 
             var isStoryOrDefect = regex.Match(msg.Text);
-            // todo: check m.Groups for null
-            var formattedId = isStoryOrDefect.Groups[0].Value;
+            // todo: check match.Groups for null
+            var formattedId     = isStoryOrDefect.Groups[0].Value;
 
             if (isStoryOrDefect.Success)
             {
@@ -79,7 +80,7 @@ namespace RallyCat.WebApi.Controllers
         {
             // get current Slack channel
             var mappings = RallyBackgroundDataService.Instance.RallySlackMappings;
-            var map = mappings.Find(o => o.Channels.Contains(channelName.ToLower()));
+            var map      = mappings.Find(o => o.Channels.Contains(channelName.ToLower()));
             if (map == null) { throw new ObjectNotFoundException(); }
 
             // get kanban for this channel
@@ -107,8 +108,7 @@ namespace RallyCat.WebApi.Controllers
             }
 
             var mappings = RallyBackgroundDataService.Instance.RallySlackMappings;
-            var map = mappings.Find(o => o.Channels.Contains(channelName.ToLower()));
-
+            var map      = mappings.Find(o => o.Channels.Contains(channelName.ToLower()));
             if (map == null) { throw new ObjectNotFoundException("Cannot found channel name mapping for " + channelName); }
 
             var result = _RallyService.GetRallyItemById(map, formattedId);
