@@ -49,14 +49,11 @@ namespace RallyCat.WebApi.Controllers
             var detailRegex = @"((US|Us|uS|us)\d{1,9})|(((dE|de|De|DE)\d{1,9}))";
             var regex = new Regex(detailRegex);
 
-            if (slackText.Length > 2)
+    
+            foreach (var element in slackText)
             {
-                foreach (var element in slackText)
-                {
-                    if (element.Contains("kanban") || element.Contains("rallycat") || regex.IsMatch(element)) { continue; }
-
-                    channel = element;
-                }
+                if (element.Contains("kanban") || element.Contains("rallycat") || regex.IsMatch(element)) { continue; }
+                channel = element;
             }
 
             var isStoryOrDefect = regex.Match(msg.Text);
