@@ -14,9 +14,9 @@ namespace RallyCat.WebApi.ViewModels
             
         }
 
-        public SlackResponseVM(string t)
+        public SlackResponseVM(string responseText)
         {
-            text = t;
+            text = responseText;
         }
         public string text { get; set; }
     }
