@@ -64,7 +64,6 @@ namespace RallyCat.Core.Services
             //request.Fetch = new List<string>() { "Name", "Description", "FormattedID" };
             request.Fetch = requestFields;
             request.Query = query;
-            // request.Order = map.KanbanSortColumn;
             QueryResult queryResult = api.Query(request);
             return queryResult;
         }
@@ -94,9 +93,8 @@ namespace RallyCat.Core.Services
                     {
                         columnName = "None";
                     }
+                    if (!item["StringValue"].Contains("DE Approv"))
                     kanbanColumns.Add(columnName, null);
-
-
                 }
                 return kanbanColumns;
             }
@@ -145,7 +143,8 @@ namespace RallyCat.Core.Services
                 "Description",
                 "Blocked",
                 "BlockedReason",
-                "Owner"
+                "Owner",
+                "DisplayColor"
             };
             // requestFields.Add(map.KanbanSortColumn);
 
