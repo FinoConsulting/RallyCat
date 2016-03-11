@@ -14,17 +14,20 @@ namespace RallyCat.Core.Rally
         public bool IsBlocked { get; set; }
         public string BlockedReason { get; set; }
         public string KanbanState { get; set; }
-        public KanbanItem(string kanbanState, string formattedId, string assignedTo, string storyDescription)
+        public string DisplayColor { get; set; }
+
+        public KanbanItem(string kanbanState, string formattedId, string displayColor, string assignedTo, string storyDescription)
         {
             KanbanState = kanbanState;
             FormattedId = formattedId;
             AssignedTo = assignedTo;
             StoryDescription = storyDescription;
             IsBlocked = false;
-            
+            DisplayColor = displayColor;
+
         }
 
-        public KanbanItem(string kanbanState, string formattedId, string assignedTo, string storyDescription, string blockedReason)
+        public KanbanItem(string kanbanState, string formattedId, string displayColor, string assignedTo, string storyDescription, string blockedReason)
         {
             KanbanState = kanbanState;
             FormattedId = formattedId;
@@ -32,19 +35,27 @@ namespace RallyCat.Core.Rally
             StoryDescription = storyDescription;
             IsBlocked = true;
             BlockedReason = blockedReason;
+            DisplayColor = displayColor;
         }
 
         public static KanbanItem ConvertFrom(dynamic queryResult, string kanbanStateKeyWord)
         {
             var s = queryResult;
+            var defaultColor = "#00A9E0";
+          
+            if (s["FormattedID"].ToLower().Contains("de"))
+            {
+                defaultColor = "#F9A814";
+                
+            }
+
             if (s["Blocked"])
             {
-                return new KanbanItem(s[kanbanStateKeyWord] ?? "None", s["FormattedID"], s["Owner"] == null ? "(None)" : s["Owner"]["_refObjectName"], s["Name"], s["BlockedReason"]);
+                return new KanbanItem(s[kanbanStateKeyWord] ?? "None", s["FormattedID"], s["DisplayColor"] ?? defaultColor, s["Owner"] == null ? "(None)" : s["Owner"]["_refObjectName"], s["Name"], s["BlockedReason"]);
             }
-            else
-            {
-                return new KanbanItem(s[kanbanStateKeyWord] ?? "None", s["FormattedID"], s["Owner"] == null ? "(None)" : s["Owner"]["_refObjectName"], s["Name"]);
-            }
+        
+            return new KanbanItem(s[kanbanStateKeyWord] ?? "None", s["FormattedID"], s["DisplayColor"] ?? defaultColor, s["Owner"] == null ? "(None)" : s["Owner"]["_refObjectName"], s["Name"]);
+        
         }
     }
 }
