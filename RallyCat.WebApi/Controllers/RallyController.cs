@@ -78,7 +78,7 @@ namespace RallyCat.WebApi.Controllers
                 HttpWebRequest autoRequest = (HttpWebRequest)WebRequest.Create(postUrl);
                 Encoding encoding1 = new UTF8Encoding();
 
-                string autoResponse = "{\"text\":\"Meow.... your data is on its way!\"}";
+                string autoResponse = "{\"text\":\"Ignore the time out error!!! Slack is lying to you.... your data is on its way! :)\"}";
                 byte[] autoResponseData = encoding1.GetBytes(autoResponse);
 
                 autoRequest.ProtocolVersion = HttpVersion.Version11;
@@ -116,8 +116,11 @@ namespace RallyCat.WebApi.Controllers
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(postUrl);
 
                 result = result.Replace("\"", "\\\"");
-                
                 string postData = "{\"text\":\"" + result + "\"}";
+                if (slackMessageText.Contains("kanban"))
+                {
+                   postData = "{\"attachments\":[{\"text\":\"" + result + "\",\"image_url\":\"" + result + "\"}]}";
+                }
 
 
                 var data = Encoding.ASCII.GetBytes(postData);
