@@ -12,6 +12,7 @@ namespace RallyCat.Core.Services
         public Rectangle GetKanbanItemSize(Point startPoint, Int32 recWidth, Int32 headerHeight, Int32 textMargin,
             KanbanItem item)
         {
+            
             Image img = new Bitmap(1, 1);
             using (var g = Graphics.FromImage(img))
             {
@@ -34,7 +35,7 @@ namespace RallyCat.Core.Services
 
                 if (item.IsBlocked)
                 {
-                    var blockedIcon               = Resources.blocked;
+                    var blockedIcon                 = Resources.blocked;
                     var blockedReasonSize           = g.MeasureString(item.BlockedReason, font, headerRec.Width - 2 * textMargin - blockedIcon.Width - halfMargin);
                     var blockedReasonBackgroundSize = new SizeF(headerRec.Width - 2 * textMargin, blockedReasonSize.Height);
 
@@ -90,6 +91,7 @@ namespace RallyCat.Core.Services
             Int32 stackItemMargin,
             Int32 textMargin, String category, Int32 categoryHeight, List<KanbanItem> items)
         {
+          
             var next = startPoint;
             next.X += stackItemMargin;
             next.Y += stackItemMargin;
@@ -100,7 +102,10 @@ namespace RallyCat.Core.Services
             g.DrawString(category, font, brush, new RectangleF(next.X, next.Y, rectWidth, categoryHeight), sf);
 
             next.Y += categoryHeight;
-
+            if (items == null)
+            {
+                return new Rectangle(startPoint, new Size(stackItemMargin + rectWidth + stackItemMargin, next.Y));
+            }
             foreach (var item in items)
             {
                 var rec = DrawOneKanbanItem(g, next, rectWidth, headerHeight, textMargin, item);
@@ -112,12 +117,16 @@ namespace RallyCat.Core.Services
         public Rectangle GetOneKanbanColumnSize(Point startPoint, Int32 rectWidth, Int32 headerHeight, Int32 stackItemMargin,
             Int32 textMargin, Int32 categoryHeight, List<KanbanItem> items)
         {
+         
             var next = startPoint;
 
             next.X += stackItemMargin;
             next.Y += categoryHeight;
             next.Y += stackItemMargin;
-
+            if (items == null)
+            {
+                return new Rectangle(startPoint, new Size(stackItemMargin + rectWidth + stackItemMargin, next.Y));
+            }
             foreach (var item in items)
             {
                 var rec = GetKanbanItemSize(next, rectWidth, headerHeight, textMargin, item);
@@ -131,13 +140,19 @@ namespace RallyCat.Core.Services
         public Rectangle DrawOneKanbanItem(Graphics g, Point startPoint, Int32 recWidth, Int32 headerHeight, Int32 textMargin,
             KanbanItem item)
         {
+            if (item == null)
+            {
+                return new Rectangle(new Point(0,0), new Size(0,0));
+            }
             Single currentHeight = 0;
-
-            var halfMargin = textMargin / 2;
+            var halfMargin       = textMargin / 2;
 
             //Header, solid rectangle
-            Brush headerBrush = new SolidBrush(Color.DarkOrange);
-            var headerRec     = new Rectangle(new Point(startPoint.X, startPoint.Y), new Size(recWidth + 1, headerHeight));
+
+            string htmlColor       = item.DisplayColor;
+            Color itemHeaderColor  = ColorTranslator.FromHtml(htmlColor);
+            Brush headerBrush      = new SolidBrush(itemHeaderColor);
+            var headerRec          = new Rectangle(new Point(startPoint.X, startPoint.Y), new Size(recWidth + 1, headerHeight));
 
             var font               = new Font("Segoe UI", 20, FontStyle.Regular);
             Debug.WriteLine("Draw:currentHeight0:" + currentHeight);

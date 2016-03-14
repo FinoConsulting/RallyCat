@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Security.Authentication;
+using Rally.RestApi;
 using Rally.RestApi.Response;
 using RallyCat.Core.Rally;
 using RallyApi = Rally.RestApi;
@@ -54,6 +56,38 @@ namespace RallyCat.Core.Services
             return queryResult;
         }
 
+        public Dictionary<string, List<KanbanItem>> GetOrderedColumns(RallySlackMapping map)
+        {
+            var api = _Pool.GetApi(_RallyToken, _RallyUrl);
+            if (api == null)
+            {
+                throw new AuthenticationException("Cannot verify rally login");
+            }
+            var queryType           = "AttributeDefinition/46444394085/AllowedValues";
+            var requestField        = new List<string>() { "StringValue", "ValueIndex" };
+            Request request         = new Request(queryType);
+            request.Fetch           = requestField;
+            QueryResult queryResult = api.Query(request);
+
+
+            if (queryResult.Results.Any())
+            {
+                var kanbanColumns = new Dictionary<string, List<KanbanItem>>();
+                foreach (var item in queryResult.Results)
+                {
+                    var columnName = item["StringValue"];
+                    if (item["StringValue"] == "")
+                    {
+                        columnName = "None";
+                    }
+                    if (!item["StringValue"].Contains("DE Approv"))
+                    kanbanColumns.Add(columnName, null);
+                }
+                return kanbanColumns;
+            }
+            return null;
+        }
+
         public List<dynamic> GetKanban(RallySlackMapping map)
         {
             // todo: review -- move this into a method call, then collate the result sets
@@ -80,6 +114,7 @@ namespace RallyCat.Core.Services
             query         = new RallyApi.Query("Iteration.Name", RallyApi.Query.Operator.Equals, iter.Name);
             requestFields = new List<String>
             {
+                map.KanbanSortColumn,
                 "Name",
                 "ObjectID",
                 "FormattedID",
@@ -87,8 +122,16 @@ namespace RallyCat.Core.Services
                 "Blocked",
                 "BlockedReason",
                 "Owner",
+<<<<<<< HEAD
                 map.KanbanSortColumn
             };
+=======
+                "DisplayColor"
+            };
+            // requestFields.Add(map.KanbanSortColumn);
+
+            var result0 = GetRallyItemByQuery( map, requestFields, query, queryType);
+>>>>>>> rallycat-slash-command
 
             var result0 = GetRallyItemByQuery(map, requestFields, query, queryType);
 

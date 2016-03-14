@@ -12,7 +12,7 @@ namespace RallyCat.WebApi.ViewModels
     {
         public SlackResponseVm() { }
 
-        public SlackResponseVm(String t) { text = t; }
+        public SlackResponseVm(String responseText) { text = responseText; }
 
         // todo: add json names for these properties
         public String text { get; set; }

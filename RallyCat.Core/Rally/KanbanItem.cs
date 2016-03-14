@@ -7,27 +7,30 @@ using System.Threading.Tasks;
 namespace RallyCat.Core.Rally
 {
     public class KanbanItem
-    {
+    { 
         public String  AssignedTo       { get; set; }
         public String  BlockedReason    { get; set; }
+        public String  DisplayColor     { get; set; }
         public String  FormattedId      { get; set; }
         public Boolean IsBlocked        { get; set; }
         public String  KanbanState      { get; set; }
         public String  StoryDescription { get; set; }
 
-        public KanbanItem(String kanbanState, String formattedId, String assignedTo, String storyDescription)
+        public KanbanItem(String kanbanState, String formattedId, String displayColor, String assignedTo, String storyDescription)
         {
             KanbanState      = kanbanState;
             FormattedId      = formattedId;
+            DisplayColor     = displayColor;
             AssignedTo       = assignedTo;
             StoryDescription = storyDescription;
             IsBlocked        = false;
         }
 
-        public KanbanItem(String kanbanState, String formattedId, String assignedTo, String storyDescription, String blockedReason)
+        public KanbanItem(String kanbanState, String formattedId, String displayColor, String assignedTo, String storyDescription, String blockedReason)
         {
             KanbanState      = kanbanState;
             FormattedId      = formattedId;
+            DisplayColor     = displayColor;
             AssignedTo       = assignedTo;
             StoryDescription = storyDescription;
             IsBlocked        = true;
@@ -36,20 +39,28 @@ namespace RallyCat.Core.Rally
 
         public static KanbanItem ConvertFrom(dynamic queryResult, String kanbanStateKeyWord)
         {
+
             var s = queryResult;
+            var kanbanState  = s[kanbanStateKeyWord] ?? "None";
+            var formattedId  = s["FormattedID"];
+            var defaultColor = "#00A9E0";
 
-            var formattedId = s["FormattedID"];
-            // var owner
-            // var name
-            // etc.
-
-            // todo: Jenny, please go make these not hurt to look at
-
-            if (s["Blocked"])
+            if (formattedId.ToLower().Contains("de"))
             {
-                return new KanbanItem(s[kanbanStateKeyWord] ?? "None", formattedId, s["Owner"] == null ? "(None)" : s["Owner"]["_refObjectName"], s["Name"], s["BlockedReason"]);
+                defaultColor = "#F9A814";
             }
-            return new KanbanItem(s[kanbanStateKeyWord] ?? "None", formattedId, s["Owner"] == null ? "(None)" : s["Owner"]["_refObjectName"], s["Name"]);
+
+            var displayColor  = s["DisplayColor"] ?? defaultColor;
+            var owner         = s["Owner"]["_refObjectName"] ?? "(None)";
+            var name          = s["Name"];
+            var blocked       = s["Blocked"];
+            var blockedReason = s["BlockedReason"];
+
+            if (blocked)
+            {
+                return new KanbanItem(kanbanState, formattedId, displayColor, owner, name, blockedReason);
+            }
+            return new KanbanItem(kanbanState, formattedId, displayColor, owner, name);
         }
     }
 }
