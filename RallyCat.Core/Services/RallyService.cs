@@ -75,13 +75,11 @@ namespace RallyCat.Core.Services
                 var kanbanColumns = new Dictionary<string, List<KanbanItem>>();
                 foreach (var item in queryResult.Results)
                 {
-                    var columnName = item["StringValue"];
-                    if (item["StringValue"] == "")
+                    var columnName = item["StringValue"] == "" ? "None" : item["StringValue"];
+                    if (!columnName.Contains("DE Approv"))
                     {
-                        columnName = "None";
+                        kanbanColumns.Add(columnName, null);
                     }
-                    if (!item["StringValue"].Contains("DE Approv"))
-                    kanbanColumns.Add(columnName, null);
                 }
                 return kanbanColumns;
             }
@@ -122,25 +120,18 @@ namespace RallyCat.Core.Services
                 "Blocked",
                 "BlockedReason",
                 "Owner",
-<<<<<<< HEAD
-                map.KanbanSortColumn
-            };
-=======
                 "DisplayColor"
             };
-            // requestFields.Add(map.KanbanSortColumn);
 
-            var result0 = GetRallyItemByQuery( map, requestFields, query, queryType);
->>>>>>> rallycat-slash-command
 
-            var result0 = GetRallyItemByQuery(map, requestFields, query, queryType);
+            var userStories = GetRallyItemByQuery(map, requestFields, query, queryType);
 
             //Defects
             queryType      = "defect";
-            var result1    = GetRallyItemByQuery(map, requestFields, query, queryType);
-            var resultList = result0.Results.ToList();
+            var defects    = GetRallyItemByQuery(map, requestFields, query, queryType);
+            var resultList = userStories.Results.ToList();
 
-            resultList.AddRange(result1.Results);
+            resultList.AddRange(defects.Results);
 
             return resultList;
         }
