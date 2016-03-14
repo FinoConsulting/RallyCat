@@ -35,7 +35,6 @@ namespace RallyCat.WebApi.Models.Slack
             var entries = source.Split('&');
             foreach (var en in entries)
             {
-<<<<<<< HEAD
                 var element = en.Split('=');
 
                 if (en.Contains("token"       )) { msg.Token       = element[1];                                             }
@@ -51,57 +50,6 @@ namespace RallyCat.WebApi.Models.Slack
                 if (en.Contains("text"        )) { msg.Text        = element[1];                                             }
                 if (en.Contains("response_url")) { msg.ResponseUrl = element[1];                                             }
 
-=======
-                var element = en.Split(new[] { '=' });
-                if (en.Contains("token"))
-                {
-                    msg.Token = element[1];
-                }
-                if (en.Contains("team_id"))
-                {
-                    msg.TeamId = element[1];
-                }
-                if (en.Contains("team_domain"))
-                {
-                    msg.TeamDomain = element[1];
-                }
-                if (en.Contains("service_id"))
-                {
-                    msg.ServiceId = element[1];
-                }
-                if (en.Contains("channel_id"))
-                {
-                    msg.ChannelId = element[1];
-                }
-                if (en.Contains("channel_name"))
-                {
-                    msg.ChannelName = element[1];
-                }
-                if (en.Contains("timestamp"))
-                {
-                    msg.TimeStamp = Convert.ToDouble(element[1]).UnixTimeStampToDateTime();
-                }
-                if (en.Contains("user_id"))
-                {
-                    msg.UserId = element[1];
-                }
-                if (en.Contains("user_name"))
-                {
-                    msg.UserName = element[1];
-                }
-                if (en.Contains("trigger_word"))
-                {
-                    msg.TriggerWord = element[1];
-                }
-                if (en.Contains("text"))
-                {
-                    msg.Text = element[1];
-                }
-                if (en.Contains("response_url"))
-                {
-                    msg.ResponseUrl = element[1];
-                }
->>>>>>> 8e61a54fa727ccaa53f95484aa886e610adefea7
             }
 
             return msg;
