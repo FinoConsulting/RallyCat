@@ -99,7 +99,14 @@ namespace RallyCat.WebApi.Controllers
                 channel = element;
             }
 
-            if (isStoryOrDefect.Success) { result = GetItem(formattedId, channel); }
+            if (isStoryOrDefect.Success)
+            {
+                result = GetItem(formattedId, channel);
+                if (responseUrl != null)
+                {
+                    result = GetItemWithAttachments(formattedId, channel);
+                }
+            }
 
             if (slackMessageText.Contains("kanban")) { result = GetKanban(channel); }
 
@@ -108,8 +115,8 @@ namespace RallyCat.WebApi.Controllers
                 var formattedUrl       = Regex.Replace(responseUrl, "%2F", "/");
                 var postUrl            = Regex.Replace(formattedUrl, "%3A", ":");
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(postUrl);
-                result                 = result.Replace("\"", "\\\"");
-                string postData        = "{\"text\":\"" + result + "\"}";
+                // result                 = result.Replace("\"", "\\\"");
+                string postData        = "{\"text\":\":smirk_cat:\", \"attachments\":" + result + "}";
 
                 if (slackMessageText.Contains("kanban"))
                 {
@@ -125,7 +132,7 @@ namespace RallyCat.WebApi.Controllers
                 Stream stream           = request.GetRequestStream();
                 stream.Write(data, 0, data.Length);
                 stream.Close();
-                return new SlackResponseVm("meow mix meow mix I want meow mix");
+                return new SlackResponseVm("Here you go!");
             }
             return new SlackResponseVm(result);
         }
@@ -159,18 +166,39 @@ namespace RallyCat.WebApi.Controllers
         }
         public String GetItem(String formattedId, String channelName)
         {
-            var mappings        = RallyBackgroundDataService.Instance.RallySlackMappings;
-            var map             = mappings.Find(o => o.Channels.Contains(channelName.ToLower()));
+            var mappings = RallyBackgroundDataService.Instance.RallySlackMappings;
+            var map = mappings.Find(o => o.Channels.Contains(channelName.ToLower()));
             if (map == null) { throw new ObjectNotFoundException("Cannot found channel name mapping for " + channelName); }
 
-            var result          = _RallyService.GetRallyItemById(map, formattedId);
-            var item            = result.Results.FirstOrDefault();
+            var result = _RallyService.GetRallyItemById(map, formattedId);
+            var item = result.Results.FirstOrDefault();
 
             if (item == null) { return null; }
 
-            var itemName        = (String)item["Name"];
+            var itemName = (String)item["Name"];
+
             var itemDescription = ((String)item["Description"]).HtmlToPlainText();
-            return String.Format("_{0}_" + "\r\n\r\n" + "*{1}*\r\n" + "*{2}*" + "\r\n{3}", GetWelcomeMsg(), itemName.ToUpper(), itemName, itemDescription);
+            return String.Format("_{0}_:smirk_cat:" + "\r\n\r\n\r\n\r\n" + "*{1}*\r\n" + ">>>\r\n{2}", "I've been summoned!!", itemName, itemDescription);
+        }
+
+        public String GetItemWithAttachments(String formattedId, String channelName)
+        {
+            var mappings = RallyBackgroundDataService.Instance.RallySlackMappings;
+            var map = mappings.Find(o => o.Channels.Contains(channelName.ToLower()));
+            if (map == null) { throw new ObjectNotFoundException("Cannot found channel name mapping for " + channelName); }
+
+            var result = _RallyService.GetRallyItemById(map, formattedId);
+            var item = result.Results.FirstOrDefault();
+
+            if (item == null) { return null; }
+
+            var userStoryOrDefect = KanbanItem.ConvertFrom(item, map.KanbanSortColumn);
+            var fullDescription = userStoryOrDefect.FullDescription.Replace("\"", "\\\"");
+            var storyDescription = userStoryOrDefect.StoryDescription.Replace("\"", "\\\"");
+            userStoryOrDefect = "[{\"text\":\"" + fullDescription + "\", \"author_name\":\"" + storyDescription.ToUpper() + "\", \"color\":\""
+              + userStoryOrDefect.DisplayColor + "\", \"title\":\"" + userStoryOrDefect.FormattedId + "\", \"fields\": [{\"title\":\"Assigned To\", \"value\":\"" + userStoryOrDefect.AssignedTo + "\",\"short\": true }]}]";
+            return userStoryOrDefect;
+
         }
 
 

@@ -33,7 +33,21 @@ namespace RallyCat.Core.Services
             }
 
             var query         = new RallyApi.Query("FormattedID", RallyApi.Query.Operator.Equals, formattedId);
-            var requestFields = new List<String> { "Name", "Description", "FormattedID" };
+            // var requestFields = new List<String> { "Name", "Description", "FormattedID", "DisplayColor" };
+            var requestFields = new List<String>
+            {
+                map.KanbanSortColumn,
+                "Name",
+                "ObjectID",
+                "FormattedID",
+                "Description",
+                "Blocked",
+                "BlockedReason",
+                "Owner",
+                "DisplayColor"
+            };
+
+
             return GetRallyItemByQuery(map, requestFields, query, queryType);
         }
 
@@ -48,7 +62,6 @@ namespace RallyCat.Core.Services
 
             request.Project   = "/project/" + map.ProjectId;
             request.Workspace = "/workspace/" + map.WorkspaceId;
-            //request.Fetch   = new List<string>() { "Name", "Description", "FormattedID" };
             request.Fetch     = requestFields;
             request.Query     = query;
             var queryResult   = api.Query(request);
