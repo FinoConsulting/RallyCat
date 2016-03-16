@@ -66,31 +66,13 @@ namespace RallyCat.WebApi.Controllers
             if (responseUrl != null)
             {
                 // temporary auto-response 
-                var formattedUrl            = Regex.Replace(responseUrl, "%2F", "/");
-                var postUrl                 = Regex.Replace(formattedUrl, "%3A", ":");
-
-                HttpWebRequest autoRequest  = (HttpWebRequest)WebRequest.Create(postUrl);
-                Encoding encoding1          = new UTF8Encoding();
-
                 string autoResponse         = "{\"text\":\"Ignore the time out error!!!.... trust me...\"}";
-                byte[] autoResponseData     = encoding1.GetBytes(autoResponse);
-    
-                autoRequest.ProtocolVersion = HttpVersion.Version11;
-                autoRequest.Method          = "POST";
-                autoRequest.ContentType     = "application/json";
-                autoRequest.ContentLength   = autoResponseData.Length;
-
-                Stream tempStream           = autoRequest.GetRequestStream();
-
-                tempStream.Write(autoResponseData, 0, autoResponseData.Length);
-                tempStream.Close();
+                SendMessageToSlack(responseUrl, autoResponse);
             }
-
 
             var isStoryOrDefect = regex.Match(msg.Text);
             // todo: check match.Groups for null
             var formattedId     = isStoryOrDefect.Groups[0].Value;
-
 
             foreach (var element in slackText)
             {
@@ -104,29 +86,38 @@ namespace RallyCat.WebApi.Controllers
 
             if (responseUrl != null)
             {
-                var formattedUrl       = Regex.Replace(responseUrl, "%2F", "/");
-                var postUrl            = Regex.Replace(formattedUrl, "%3A", ":");
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(postUrl);           
-       
-                string postData = "{\"text\":\"Result(s):\", \"attachments\": [{\"text\":\"" + result + "\"}]}";
-                
-                if (slackMessageText.Contains("kanban"))
-                {
-                    postData = "{\"attachments\":[{\"text\":\"" + result + "\",\"image_url\":\"" + result + "\"}]}";
-                }
+                string postData = (slackMessageText.Contains("kanban"))
+                    ? "{\"attachments\":[{\"text\":\"" + result + "\",\"image_url\":\"" + result + "\"}]}"
+                    : "{\"text\":\"Result(s):\", \"attachments\": [{\"text\":\"" + result + "\"}]}"; 
+            //{
+            //    string postData = "{\"text\":\"Result(s):\", \"attachments\": [{\"text\":\"" + result + "\"}]}";
 
-                var data                = Encoding.ASCII.GetBytes(postData);
-                request.ProtocolVersion = HttpVersion.Version11;
-                request.Method          = "POST";
-                request.ContentType     = "application/json";
-                request.ContentLength   = data.Length;
+            //    if (slackMessageText.Contains("kanban"))
+            //    {
+            //        postData = "{\"attachments\":[{\"text\":\"" + result + "\",\"image_url\":\"" + result + "\"}]}";
+            //    }
 
-                Stream stream           = request.GetRequestStream();
-                stream.Write(data, 0, data.Length);
-                stream.Close();
+                SendMessageToSlack(responseUrl, postData);
                 return new SlackResponseVm("tadaaaa!");
             }
             return new SlackResponseVm(result);
+        }
+
+        private void SendMessageToSlack(string responseUrl, string postData)
+        {
+            var formattedUrl = Regex.Replace(responseUrl, "%2F", "/");
+            var postUrl = Regex.Replace(formattedUrl, "%3A", ":");
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(postUrl);
+
+            var data = Encoding.ASCII.GetBytes(postData);
+            request.ProtocolVersion = HttpVersion.Version11;
+            request.Method = "POST";
+            request.ContentType = "application/json";
+            request.ContentLength = data.Length;
+
+            Stream stream = request.GetRequestStream();
+            stream.Write(data, 0, data.Length);
+            stream.Close();
         }
 
         [System.Web.Mvc.Route("api/Rally/Kanban/{channelName}")]
