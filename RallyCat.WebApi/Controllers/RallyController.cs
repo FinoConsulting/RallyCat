@@ -72,7 +72,7 @@ namespace RallyCat.WebApi.Controllers
                 HttpWebRequest autoRequest  = (HttpWebRequest)WebRequest.Create(postUrl);
                 Encoding encoding1          = new UTF8Encoding();
 
-                string autoResponse         = "{\"text\":\"Ignore the time out error!!! Slack is lying to you.... your data is on its way! :)\"}";
+                string autoResponse         = "{\"text\":\"Ignore the time out error!!!.... trust me...\"}";
                 byte[] autoResponseData     = encoding1.GetBytes(autoResponse);
     
                 autoRequest.ProtocolVersion = HttpVersion.Version11;
@@ -107,8 +107,9 @@ namespace RallyCat.WebApi.Controllers
                 var formattedUrl       = Regex.Replace(responseUrl, "%2F", "/");
                 var postUrl            = Regex.Replace(formattedUrl, "%3A", ":");
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(postUrl);           
-                string postData        = "{\"text\":\":smirk_cat:\", \"attachments\":" + result + "}";
-
+       
+                string postData = "{\"text\":\"Result(s):\", \"attachments\": [{\"text\":\"" + result + "\"}]}";
+                
                 if (slackMessageText.Contains("kanban"))
                 {
                     postData = "{\"attachments\":[{\"text\":\"" + result + "\",\"image_url\":\"" + result + "\"}]}";
@@ -123,7 +124,7 @@ namespace RallyCat.WebApi.Controllers
                 Stream stream           = request.GetRequestStream();
                 stream.Write(data, 0, data.Length);
                 stream.Close();
-                return new SlackResponseVm("Here you go!");
+                return new SlackResponseVm("tadaaaa!");
             }
             return new SlackResponseVm(result);
         }
@@ -132,18 +133,18 @@ namespace RallyCat.WebApi.Controllers
         public String GetKanban(String channelName)
         {
             // get current Slack channel
-            var mappings = RallyBackgroundDataService.Instance.RallySlackMappings;
-            var map      = mappings.Find(o => o.Channels.Contains(channelName.ToLower()));
-            if (map == null) { return "Cannot find Kanban for " + channelName; }
+            var mappings        = RallyBackgroundDataService.Instance.RallySlackMappings;
+            var map             = mappings.Find(o => o.Channels.Contains(channelName.ToLower()));
+            if (map == null) { return ":no_entry: Project: " + channelName + " not found. Please try again."; }
 
             // get kanban for this channel
-            var result = _RallyService.GetKanban(map);
-            if (result == null) { return null; }
+            var result          = _RallyService.GetKanban(map);
+            if (result == null) { return ":no_entry: Kanban for " + channelName + " not found. Please try again."; }
 
             // sort items, then draw kanban
 
-            var kanbanItems   = result.Select(o => KanbanItem.ConvertFrom(o, map.KanbanSortColumn)).Cast<KanbanItem>();
-            var kanbanColumns = _RallyService.GetOrderedColumns(map);
+            var kanbanItems     = result.Select(o => KanbanItem.ConvertFrom(o, map.KanbanSortColumn)).Cast<KanbanItem>();
+            var kanbanColumns   = _RallyService.GetOrderedColumns(map);
 
             foreach (var item in kanbanItems.GroupBy(k => k.KanbanState))
             {
@@ -157,36 +158,35 @@ namespace RallyCat.WebApi.Controllers
         }
         public String GetItem(String formattedId, String channelName)
         {
-            var mappings = RallyBackgroundDataService.Instance.RallySlackMappings;
-            var map      = mappings.Find(o => o.Channels.Contains(channelName.ToLower()));
-            if (map == null) { throw new ObjectNotFoundException("Cannot found channel name mapping for " + channelName); }
+            var mappings        = RallyBackgroundDataService.Instance.RallySlackMappings;
+            var map             = mappings.Find(o => o.Channels.Contains(channelName.ToLower()));
+            if (map == null) { return ":no_entry: Project: " + channelName + " not found."; }
 
-            var result   = _RallyService.GetRallyItemById(map, formattedId);
-            var item     = result.Results.FirstOrDefault();
+            var result          = _RallyService.GetRallyItemById(map, formattedId);
+            var item            = result.Results.FirstOrDefault();
 
-            if (item == null) { return null; }
+            if (item == null) { return ":no_entry: User Story/Defect: " + formattedId + " not found"; }
 
-            var itemName = (String)item["Name"];
+            var itemName        = (String)item["Name"];
             var itemDescription = ((String)item["Description"]).HtmlToPlainText();
             return String.Format("_{0}_:smirk_cat:" + "\r\n\r\n\r\n\r\n" + "*{1}*\r\n" + ">>>\r\n{2}", "I've been summoned!!", itemName, itemDescription);
         }
 
         public String GetItemWithAttachments(String formattedId, String channelName)
         {
-            var mappings = RallyBackgroundDataService.Instance.RallySlackMappings;
-            var map      = mappings.Find(o => o.Channels.Contains(channelName.ToLower()));
-            if (map == null) { throw new ObjectNotFoundException("Cannot found channel name mapping for " + channelName); }
+            var mappings          = RallyBackgroundDataService.Instance.RallySlackMappings;
+            var map               = mappings.Find(o => o.Channels.Contains(channelName.ToLower()));
 
-            var result   = _RallyService.GetRallyItemById(map, formattedId);
-            var item     = result.Results.FirstOrDefault();
+            if (map == null) { return ":no_entry: Project: " + channelName + " not found. Please try again.\", \"color\": \"#ff0033"; }
+            var result            = _RallyService.GetRallyItemById(map, formattedId);
+            var item              = result.Results.FirstOrDefault();
 
-            if (item == null) { return null; }
-
+            if (item == null) { return ":no_entry: User Story/Defect: " + formattedId + " not found.\", \"color\": \"#ff0033"; }
             var userStoryOrDefect = KanbanItem.ConvertFrom(item, map.KanbanSortColumn);
             var fullDescription   = userStoryOrDefect.FullDescription.Replace("\"", "\\\"");
             var storyDescription  = userStoryOrDefect.StoryDescription.Replace("\"", "\\\"");
-            userStoryOrDefect     = "[{\"text\":\"" + fullDescription + "\", \"author_name\":\"" + storyDescription.ToUpper() + "\", \"color\":\""
-              + userStoryOrDefect.DisplayColor + "\", \"title\":\"" + userStoryOrDefect.FormattedId + "\", \"fields\": [{\"title\":\"Assigned To\", \"value\":\"" + userStoryOrDefect.AssignedTo + "\",\"short\": true }]}]";
+            userStoryOrDefect = fullDescription + "\", \"author_name\":\"" + storyDescription.ToUpper() + "\", \"color\":\""
+             + userStoryOrDefect.DisplayColor + "\", \"fields\": [{\"title\":\"Assigned To\", \"value\":\"" + userStoryOrDefect.AssignedTo + "\",\"short\": true }], \"title\":\"" + userStoryOrDefect.FormattedId;
             return userStoryOrDefect;
 
         }
@@ -209,24 +209,24 @@ namespace RallyCat.WebApi.Controllers
 
         private static string GetHelpMsg()
         {
-            return @"---Available Commands---
+            return @"---*Available Commands*---
 
 --From any channel (private and public): 
 
-/rallycat [project name] kanban
- /rallycat[project name] us#### 
- /rallycat [project name] de#### 
+```/rallycat [project name] kanban
+/rallycat [project name] us#### 
+/rallycat [project name] de####```
 
  --From any public channel: 
 
-rallycat: [project name] kanban
- rallycat: [project name] us####
- rallycat: [project name] de#### 
+```rallycat: [project name] kanban
+rallycat: [project name] us####
+rallycat: [project name] de####```
 
 --From specific project channel:
- rallycat: kanban 
+ ```rallycat: kanban 
 rallycat: us####
-rallycat: de####
+rallycat: de####```
 
 ";
         }
