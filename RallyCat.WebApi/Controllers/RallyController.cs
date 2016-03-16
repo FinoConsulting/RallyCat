@@ -60,7 +60,7 @@ namespace RallyCat.WebApi.Controllers
             var pattern          = '+';
             var slackText        = slackMessageText.Split(pattern);
             var channel          = msg.ChannelName;
-            var result           = GetHelpMsg();
+            var result           = ":warning: Something went wrong. Type /rallycat help for available commands.";
             var responseUrl      = msg.ResponseUrl;
 
             if (responseUrl != null)
