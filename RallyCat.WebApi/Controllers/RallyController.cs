@@ -86,17 +86,10 @@ namespace RallyCat.WebApi.Controllers
 
             if (responseUrl != null)
             {
+                // delayed slack message
                 string postData = (slackMessageText.Contains("kanban"))
                     ? "{\"attachments\":[{\"text\":\"" + result + "\",\"image_url\":\"" + result + "\"}]}"
                     : "{\"text\":\"Result(s):\", \"attachments\": [{\"text\":\"" + result + "\"}]}"; 
-            //{
-            //    string postData = "{\"text\":\"Result(s):\", \"attachments\": [{\"text\":\"" + result + "\"}]}";
-
-            //    if (slackMessageText.Contains("kanban"))
-            //    {
-            //        postData = "{\"attachments\":[{\"text\":\"" + result + "\",\"image_url\":\"" + result + "\"}]}";
-            //    }
-
                 SendMessageToSlack(responseUrl, postData);
                 return new SlackResponseVm("tadaaaa!");
             }
@@ -105,17 +98,17 @@ namespace RallyCat.WebApi.Controllers
 
         private void SendMessageToSlack(string responseUrl, string postData)
         {
-            var formattedUrl = Regex.Replace(responseUrl, "%2F", "/");
-            var postUrl = Regex.Replace(formattedUrl, "%3A", ":");
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(postUrl);
+            var formattedUrl        = Regex.Replace(responseUrl, "%2F", "/");
+            var postUrl             = Regex.Replace(formattedUrl, "%3A", ":");
+            HttpWebRequest request  = (HttpWebRequest)WebRequest.Create(postUrl);
 
-            var data = Encoding.ASCII.GetBytes(postData);
+            var data                = Encoding.ASCII.GetBytes(postData);
             request.ProtocolVersion = HttpVersion.Version11;
-            request.Method = "POST";
-            request.ContentType = "application/json";
-            request.ContentLength = data.Length;
+            request.Method          = "POST";
+            request.ContentType     = "application/json";
+            request.ContentLength   = data.Length;
 
-            Stream stream = request.GetRequestStream();
+            Stream stream           = request.GetRequestStream();
             stream.Write(data, 0, data.Length);
             stream.Close();
         }
@@ -222,6 +215,5 @@ rallycat: de####```
 ";
         }
     }
-
 }
 
